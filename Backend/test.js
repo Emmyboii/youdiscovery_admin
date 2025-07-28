@@ -1,9 +1,12 @@
 // test.js
 import mongodb from 'mongodb';
 const { MongoClient } = mongodb;
+import { config } from 'dotenv';
+
+config(); // Load .env
 
 const CLIENT_MONGO_URI =
-    'mongodb+srv://readonly_client:readonly_client123@cluster0.reotwsp.mongodb.net/youdiscovery?retryWrites=true&w=majority&appName=Cluster0';
+    process.env.OLD_DB_URI
 
 async function debugConnection() {
     console.log('🔍 Debug Connection Test');
