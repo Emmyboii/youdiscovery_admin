@@ -27,7 +27,7 @@ router.post('/signup', async (req, res) => {
 
     await sendEmailToMasterAdmin(name, email, admin._id, approvalToken);
 
-    res.status(200).json({ message: 'Signup request submitted. Awaiting approval.' });
+    res.status(200).json({ message: 'Signup request submitted. Awaiting approval. Check your email' });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Signup failed' });
@@ -70,6 +70,11 @@ router.post('/login', async (req, res) => {
   }
 });
 
+router.get('/profile', async (req, res) => {
+  const currentUser = await Admin.findOne({ _id: req.user.id });
+  res.json(currentUser);
+})
+
 // Approve Admin
 router.get('/approve/:userId', async (req, res) => {
   const { userId } = req.params;
@@ -97,7 +102,7 @@ router.get('/approve/:userId', async (req, res) => {
 
     await sendApprovalEmail(admin.email, admin.name, role);
 
-    res.status(200).send(`<h2>✅ ${admin.name} has been approved as ${role}${cohortAssigned ? ` for ${cohortAssigned}` : ''}</h2>`);
+    res.status(200).send(`<h2>✅ ${admin.name} has been approved as ${role}${cohortAssigned ? ` for Cohort ${cohortAssigned}` : ''}</h2>`);
   } catch (err) {
     console.error('Approval error:', err.message);
     res.status(400).send('<h2>❌ Approval link expired or invalid.</h2>');

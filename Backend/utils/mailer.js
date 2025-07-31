@@ -1,11 +1,17 @@
-import { createTransport } from 'nodemailer';
+import nodemailer from 'nodemailer';
+import dotenv from 'dotenv';
+dotenv.config();
 
-const transporter = createTransport({
-  service: 'gmail',
+const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false, // false means STARTTLS, not SSL
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
+  logger: true,
+  debug: true
 });
 
 // Send email to Master Admin with approval buttons (manual cohort support)
@@ -33,12 +39,12 @@ export const sendEmailToMasterAdmin = async (name, email, userId, token) => {
   }).join('<br>');
 
   const cohortInstructions = `
-    <p><strong>To approve as Cohort Admin:</strong></p>
-    <p>Copy and open this link in your browser, replacing <code>COHORT_NAME</code> with the actual cohort (e.g. <em>Cohort 7</em>):</p>
-    <p style="font-family: monospace; background: #f4f4f4; padding: 8px;">
-      ${backendUrl}/api/auth/approve/${userId}?role=Cohort%20Admin&cohortAssigned=COHORT_NAME&token=${token}
-    </p>
-  `;
+  <p><strong>To approve as a Cohort Admin:</strong></p>
+  <p>Copy and paste this link into your browser. Replace <code>COHORT_NUMBER</code> with the actual cohort number (e.g. <em>7</em>):</p>
+  <p style="font-family: monospace; background: #f4f4f4; padding: 8px; word-break: break-all;">
+    ${backendUrl}/api/auth/approve/${userId}?role=Cohort%20Admin&cohortAssigned=COHORT_NUMBER&token=${token}
+  </p>
+`;
 
   const html = `
   <h2>New Admin Signup Request</h2>

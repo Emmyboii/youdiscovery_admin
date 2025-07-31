@@ -9,7 +9,7 @@ const adminSchema = new Schema({
     type: String,
     enum: ['Master Admin', 'Super Admin', 'Support Admin', 'Mini Admin', 'Cohort Admin']
   },
-  cohortAssigned: { type: String, default: null } // e.g., "Cohort 2"
+  cohortAssigned: { type: Number, default: null } // e.g., "Cohort 2"
 });
 
 

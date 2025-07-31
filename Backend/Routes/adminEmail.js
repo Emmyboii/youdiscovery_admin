@@ -1,38 +1,39 @@
 // routes/adminEmail.js
 import { Router } from 'express';
-import { authMiddleware, requireRole } from '../middleware/auth.js';
+import { authMiddleware2, requireRole } from '../middleware/auth.js';
 import User from '../Models/userModel.js';
 import { sendAnnouncementEmail } from '../utils/mailer.js';
 
 const router = Router();
 
 // 🔐 Master + Super Admins can send mass emails
-router.post('/send-email', authMiddleware, requireRole(['Master Admin', 'Super Admin']), async (req, res) => {
+router.post('/send-email', authMiddleware2, requireRole(['Master Admin', 'Super Admin']), async (req, res) => {
   const { subject, message, filter } = req.body;
 
   try {
-    let query = {};
+    const { minCompletedClasses, cohortApplied, isActiveOnly } = filter || {};
 
-    // 🧠 Optional filters
-    if (filter?.minCompletedClasses) {
-      query['completedClasses'] = { $gte: filter.minCompletedClasses };
+    const matchStage = {};
+    if (cohortApplied) matchStage.cohortApplied = cohortApplied;
+    if (isActiveOnly) matchStage.isActive = true;
+
+    const pipeline = [
+      { $addFields: { completedCount: { $size: { $ifNull: ['$completedBlogs', []] } } } },
+      { $match: matchStage }
+    ];
+
+    if (minCompletedClasses) {
+      pipeline.push({ $match: { completedCount: { $gte: Number(minCompletedClasses) } } });
     }
 
-    if (filter?.cohortApplied) {
-      query['cohortApplied'] = filter.cohortApplied;
-    }
+    pipeline.push({ $project: { email: 1, firstName: 1 } });
 
-    if (filter?.isActiveOnly) {
-      query['isActive'] = true;
-    }
-
-    const users = await User.find(query, 'email firstName');
+    const users = await User.aggregate(pipeline);
 
     if (!users.length) {
       return res.status(404).json({ error: 'No users matched the criteria.' });
     }
 
-    // Send emails in batches (optional)
     for (const user of users) {
       await sendAnnouncementEmail(user.email, user.firstName, subject, message);
     }
@@ -43,5 +44,39 @@ router.post('/send-email', authMiddleware, requireRole(['Master Admin', 'Super A
     res.status(500).json({ error: 'Failed to send announcement.' });
   }
 });
+
+
+router.post('/email-count', authMiddleware2, requireRole(['Master Admin', 'Super Admin']), async (req, res) => {
+  try {
+    const { minCompletedClasses, cohortApplied, isActiveOnly } = req.body;
+
+    const matchStage = {};
+
+    if (cohortApplied) matchStage.cohortApplied = cohortApplied;
+    if (isActiveOnly) matchStage.isActive = true;
+
+    const pipeline = [
+      { $addFields: { completedCount: { $size: { $ifNull: ['$completedBlogs', []] } } } },
+      { $match: matchStage }
+    ];
+
+    if (minCompletedClasses) {
+      pipeline.push({ $match: { completedCount: { $gte: Number(minCompletedClasses) } } });
+    }
+
+    const countResult = await User.aggregate([
+      ...pipeline,
+      { $count: 'total' }
+    ]);
+
+    const count = countResult[0]?.total || 0;
+    res.json({ count });
+  } catch (err) {
+    console.error('Error counting users:', err);
+    res.status(500).json({ error: 'Failed to count users.' });
+  }
+});
+
+
 
 export default router;
