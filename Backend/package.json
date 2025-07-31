@@ -12,6 +12,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@sendgrid/mail": "^8.1.5",
     "bcrypt": "^6.0.0",
     "dotenv": "^17.2.0",
     "express": "^5.1.0",
@@ -19,7 +20,8 @@
     "mongodb": "^6.18.0",
     "mongoose": "^8.16.5",
     "node-cron": "^4.2.1",
-    "nodemailer": "^7.0.5"
+    "nodemailer": "^7.0.5",
+    "resend": "^4.7.0"
   },
   "devDependencies": {
     "body-parser": "^2.2.0",

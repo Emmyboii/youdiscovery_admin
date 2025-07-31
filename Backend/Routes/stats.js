@@ -14,7 +14,6 @@ const QuizAttempt = mongoose.model('quizattempts', new mongoose.Schema({}, { str
 router.get('/user/:id/stats', async (req, res) => {
     try {
         const { id } = req.params;
-
         const user = await User.findById(id).lean();
         if (!user) return res.status(404).json({ error: 'User not found' });
 
@@ -25,16 +24,10 @@ router.get('/user/:id/stats', async (req, res) => {
             Quiz.find({}).lean(),
         ]);
 
-        // Fetch only the attempts listed in user.quizAttempts
         const attemptIds = user.quizAttempts?.map(id => new mongoose.Types.ObjectId(id)) || [];
         const quizAttempts = await QuizAttempt.find({ _id: { $in: attemptIds } }).lean();
 
-        // Mappings
-        const chapterToGroup = {};
-        const blogToChapter = {};
-        const blogToGroup = {};
-        const quizToBlog = {};
-        const quizMap = {};
+        const chapterToGroup = {}, blogToChapter = {}, blogToGroup = {}, quizToBlog = {}, quizMap = {};
 
         chapters.forEach(ch => {
             chapterToGroup[ch._id.toString()] = ch.group?.toString();
@@ -53,11 +46,9 @@ router.get('/user/:id/stats', async (req, res) => {
             quizMap[quizId] = q;
         });
 
-        // Completed blog IDs
         const completedBlogIds = user.completedBlogs?.map(cb => cb.blog?.toString()) || [];
         const completedBlogSet = new Set(completedBlogIds);
 
-        // ✅ Completed Chapters = All blogs in chapter completed
         const completedChapterSet = new Set();
         chapters.forEach(ch => {
             const chapterId = ch._id.toString();
@@ -68,7 +59,6 @@ router.get('/user/:id/stats', async (req, res) => {
             }
         });
 
-        // ✅ Completed Courses = All chapters with blogs in course completed
         const completedGroupSet = new Set();
         groups.forEach(group => {
             const groupId = group._id.toString();
@@ -86,29 +76,24 @@ router.get('/user/:id/stats', async (req, res) => {
             }
         });
 
-        // Course statistics init
         const courseStats = {};
         groups.forEach(group => {
             const id = group._id.toString();
             courseStats[id] = {
                 groupId: id,
                 groupTitle: group.title,
-
                 quizzesTotal: 0,
                 quizzesAttempted: 0,
                 quizzesPassed: 0,
                 quizzesScoreSum: 0,
                 quizAverage: 0,
-
                 classesTotal: 0,
                 classesCompleted: 0,
-
                 chaptersTotal: 0,
                 chaptersCompleted: 0,
             };
         });
 
-        // Classes count
         blogs.forEach(blog => {
             const groupId = blogToGroup[blog._id.toString()];
             if (groupId && courseStats[groupId]) {
@@ -123,7 +108,6 @@ router.get('/user/:id/stats', async (req, res) => {
             }
         });
 
-        // Chapters count
         chapters.forEach(ch => {
             const groupId = ch.group?.toString();
             if (groupId && courseStats[groupId]) {
@@ -134,7 +118,6 @@ router.get('/user/:id/stats', async (req, res) => {
             }
         });
 
-        // Quizzes count
         quizzes.forEach(quiz => {
             const blogId = quizToBlog[quiz._id.toString()];
             const groupId = blogToGroup[blogId];
@@ -143,7 +126,6 @@ router.get('/user/:id/stats', async (req, res) => {
             }
         });
 
-        // Process Attempts
         let passedCount = 0;
         const validAttempts = quizAttempts.filter(a => typeof a.score === 'number');
         const scoreSum = validAttempts.reduce((sum, a) => sum + a.score, 0);
@@ -166,18 +148,59 @@ router.get('/user/:id/stats', async (req, res) => {
             if (attempt.isPassed) passedCount += 1;
         });
 
-        // Compute per-course averages
         Object.values(courseStats).forEach(stat => {
             stat.quizAverage = stat.quizzesAttempted > 0
                 ? parseFloat((stat.quizzesScoreSum / stat.quizzesAttempted).toFixed(1))
                 : 0;
         });
 
-        // Final stats
         const totalAttempts = attemptIds.length;
         const quizAverage = validAttempts.length > 0
             ? parseFloat((scoreSum / validAttempts.length).toFixed(1))
             : 0;
+
+        // 🧠 Consistency & Chart
+        const dailyMap = {};
+        user.completedBlogs?.forEach(cb => {
+            const dateStr = new Date(cb.completedAt).toISOString().slice(0, 10);
+            dailyMap[dateStr] = true;
+        });
+
+        const generatePastDays = (n) => {
+            const days = [];
+            const today = new Date();
+            for (let i = 0; i < n; i++) {
+                const d = new Date(today);
+                d.setDate(d.getDate() - i);
+                days.push(d.toISOString().slice(0, 10));
+            }
+            return days;
+        };
+
+        const calcConsistency = (days) => {
+            const active = days.filter(d => dailyMap[d]).length;
+            return +(active / days.length * 100).toFixed(1);
+        };
+
+        const days7 = generatePastDays(7);
+        const days30 = generatePastDays(30);
+        const days90 = generatePastDays(90);
+
+        const consistency7 = calcConsistency(days7);
+        const consistency30 = calcConsistency(days30);
+        const consistency90 = calcConsistency(days90);
+
+        const badge =
+            consistency7 >= 90 ? '🔥 Consistent Learner'
+                : consistency7 >= 70 ? '✅ Active Participant'
+                    : consistency7 >= 40 ? '📘 Getting There'
+                        : '💤 Student Needs Motivation';
+
+        const chartDays = days90.reverse(); // show in ascending order
+        const activityChartData = chartDays.map(date => ({
+            date,
+            completed: dailyMap[date] ? 1 : 0
+        }));
 
         const finalStats = {
             userId: user._id,
@@ -198,6 +221,15 @@ router.get('/user/:id/stats', async (req, res) => {
             completedChapters: completedChapterSet.size,
 
             perCourseStats: Object.values(courseStats),
+
+            consistency: {
+                last7Days: consistency7,
+                last30Days: consistency30,
+                last90Days: consistency90,
+                badge
+            },
+
+            activityChartData // 👈 chart-ready data
         };
 
         res.json(finalStats);

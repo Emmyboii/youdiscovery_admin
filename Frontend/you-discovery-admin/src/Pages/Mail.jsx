@@ -98,6 +98,17 @@ const Mail = () => {
             const data = await res.json();
             setStatus({ message: data.message || 'Emails sent successfully.', type: 'success' });
             setModal(true);
+
+            setMail({
+                subject: '',
+                message: '',
+                filter: {
+                    minCompletedClasses: '',
+                    cohortApplied: '',
+                    isActiveOnly: false
+                }
+            });
+
         } catch {
             setStatus({ message: 'An error occurred while sending.', type: 'error' });
         } finally {

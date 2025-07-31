@@ -3,6 +3,7 @@ import { FiSave } from 'react-icons/fi'
 import editImg from '../Images/edit.svg';
 import { useParams } from 'react-router-dom';
 import { FaTimes } from 'react-icons/fa';
+import ActivityBarChart from '../Components/ActivityChartBar';
 
 const UserDetails = () => {
 
@@ -26,6 +27,7 @@ const UserDetails = () => {
     const [quizAttempted, setQuizAttempted] = useState('')
     // const [quizPasses, setQuizPasses] = useState('')
     const [quizAverage, setQuizAverage] = useState('')
+    const [stats, setStats] = useState(null);
 
     const validateForm = () => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -127,7 +129,7 @@ const UserDetails = () => {
             setQuizAttempted(data.quizzesAttempted)
             // setQuizPasses(data.quizzesPassed)
             setQuizAverage(data.quizAverage)
-
+            setStats(data)
 
         } catch (error) {
             console.error('Error:', error);
@@ -217,7 +219,7 @@ const UserDetails = () => {
                     )}
                     <h1 className="text-[18px] text-[#252525] mk:hidden block font-medium mb-2">Student's Information</h1>
                     <div className='border-[1.5px] border-[#25252533] sd:rounded-[20px] rounded-xl flex flex-col gap-[26px] sd:py-[30px] p-[20px] sd:px-[50px]'>
-                        <p className='text-[24px] sd:block hidden font-medium text-[#252525]'>Personal Information</p>
+                        <p className='text-[21px] font-medium text-[#252525]'>Personal Information</p>
                         <div className='flex justify-between items-start w-full'>
                             <div className='flex flex-col gap-[33px] w-full'>
                                 <div className='flex flex-col gap-3'>
@@ -318,7 +320,7 @@ const UserDetails = () => {
                                         type="text"
                                         value={students?.isActive}
                                         onChange={handleChange}
-                                        className={`text-[14px] md:text-[16px] font-medium text-[#252525] outline-none ${edit && 'outline-black/50 w-[70%] px-2 py-1 rounded'}`}
+                                        className={`text-[14px] md:text-[16px] capitalize font-medium text-[#252525] outline-none ${edit && 'outline-black/50 w-[70%] px-2 py-1 rounded'}`}
                                         name="isActive"
                                         id=""
                                         readOnly={!edit}
@@ -388,8 +390,24 @@ const UserDetails = () => {
                                 )}
                             </div>
                         </div>
+                        <div className='flex flex-col gap-3'>
+                            <p className='text-xs md:text-[14px] font-medium text-[#25252580]'>Comment</p>
+                            {edit ? (
+                                <textarea
+                                    value={students?.note}
+                                    onChange={handleChange}
+                                    className={`text-[14px] md:text-[16px] font-medium text-[#252525] outline-none ${edit && 'outline-black/50 w-[70%] px-2 py-1 rounded'}`}
+                                    name="cohortApplied"
+                                />
+                            ) : (
+                                <p className="text-[14px] md:text-[16px] font-medium text-[#252525]">
+                                    {students.note ? students.note : 'No Comment'}
+                                </p>
+                            )}
+                        </div>
                     </div>
                     <div className='border-[1.5px] border-[#25252533] sd:rounded-[20px] rounded-xl flex flex-col gap-[26px] sd:py-[30px] p-[20px] sd:px-[50px]'>
+                        <p className='text-[21px] font-medium text-[#252525]'>Activities</p>
                         <div className='flex justify-between items-start w-full'>
                             <div className='flex flex-col gap-[33px]'>
                                 <div className='flex flex-col gap-3'>
@@ -453,6 +471,9 @@ const UserDetails = () => {
                                 </div>
                             </div>
                         </div>
+                    </div>
+                    <div className='border-[1.5px] border-[#25252533] sd:rounded-[20px] rounded-xl flex flex-col gap-[26px] sd:py-[30px] p-[20px] sd:px-[50px]'>
+                        <ActivityBarChart stats={stats} />
                     </div>
                 </div>
             )}

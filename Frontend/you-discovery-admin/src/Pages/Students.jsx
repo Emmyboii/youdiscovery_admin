@@ -160,8 +160,8 @@ const Students = () => {
                         key={i}
                         className="grid grid-cols-9 gap-5 text-[14px] py-10 border-b border-black/30 text-black font-medium"
                     >
-                        <p className="col-span-2 truncate">{student.firstName}</p>
-                        <p className="col-span-1 truncate">{student.lastName}</p>
+                        <p className="col-span-2 capitalize truncate">{student.firstName}</p>
+                        <p className="col-span-1 capitalize truncate">{student.lastName}</p>
                         <p className="col-span-3 truncate">{student.email}</p>
                         <p className="col-span-2 truncate">
                             {new Date(student.createdAt).toLocaleDateString("en-US", {
