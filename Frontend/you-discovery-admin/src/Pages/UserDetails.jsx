@@ -347,6 +347,22 @@ const UserDetails = () => {
                                             </p>
                                         )}
                                     </div>
+                                    <div className='flex flex-col gap-3'>
+                                        <p className='text-xs md:text-[14px] text-center sh:text-start font-medium text-[#25252580]'>Gender</p>
+                                        {edit ? (
+                                            <input
+                                                type="text"
+                                                value={students?.gender}
+                                                onChange={handleChange}
+                                                className={`text-[14px] md:text-[16px] text-center sh:text-start font-medium text-[#252525] outline-none ${edit && 'outline-black/50 sh:w-[70%] px-2 py-1 rounded'}`}
+                                                name="cohortApplied"
+                                            />
+                                        ) : (
+                                            <p className="text-[14px] md:text-[16px] text-center sh:text-start font-medium text-[#252525]">
+                                                {students.gender ? students.gender : 'Not Provided'}
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
                                 <div className='flex flex-col gap-[33px] items-center sh:items-start w-full'>
                                     <div className='flex flex-col gap-3'>
@@ -489,6 +505,7 @@ const UserDetails = () => {
                                 </p>
                             )}
                         </div>
+
                     </div>
                     <div className='border-[1.5px] border-[#25252533] sd:rounded-[20px] rounded-xl flex flex-col gap-[26px] sd:py-[30px] p-[20px] xl:px-[50px]'>
                         <p className='sa:text-xl text-lg font-medium text-[#252525]'>📊 Performance Summary</p>
