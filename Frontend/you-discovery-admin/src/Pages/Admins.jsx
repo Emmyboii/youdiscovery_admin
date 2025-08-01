@@ -124,7 +124,7 @@ const Admins = () => {
     };
 
     return (
-        <div className="px-10 py-14 w-full">
+        <div className="mk:px-10 px-3 py-14 w-full">
             {/* Search & Sort */}
             <div className="flex items-center justify-between mb-6 gap-4 flex-wrap">
                 <div className="relative w-full max-w-md">
@@ -151,10 +151,10 @@ const Admins = () => {
             </div>
 
             {/* Table Header */}
-            <div className="grid grid-cols-8 gap-10 py-3 border-b text-[12px] border-black/30 text-black/50 font-medium">
-                <p className="col-span-2">Full Name</p>
-                <p className="col-span-2 truncate">Email Address</p>
-                <p className="col-span-2">Admin Role</p>
+            <div className="grid md:grid-cols-8 sh:grid-cols-6 sa:grid-cols-5 grid-cols-4 gap-10 py-3 border-b text-[12px] border-black/30 text-black/50 font-medium">
+                <p className="sa:col-span-2 truncate">Full Name</p>
+                <p className="col-span-2 md:block hidden truncate">Email Address</p>
+                <p className="sh:col-span-2 truncate">Admin Role</p>
                 <p className="col-span-1 truncate">Cohort Assigned</p>
                 <p className="text-center">Actions</p>
             </div>
@@ -168,24 +168,24 @@ const Admins = () => {
                 filteredAdmins.map((admin, i) => (
                     <div
                         key={i}
-                        className="grid grid-cols-8 gap-10 py-6 border-b text-sm border-black/20 text-black font-medium items-center"
+                        className="grid md:grid-cols-8 sh:grid-cols-6 sa:grid-cols-5 grid-cols-4 gap-10 py-6 border-b text-sm border-black/20 text-black font-medium items-center"
                     >
-                        <p className="col-span-2 capitalize">
+                        <p className="sa:col-span-2 capitalize">
                             {admin.name}
                         </p>
-                        <p className="col-span-2 truncate">{admin.email}</p>
-                        <p className="capitalize col-span-2">{admin.role}</p>
+                        <p className="col-span-2 md:block hidden truncate">{admin.email}</p>
+                        <p className="capitalize sh:col-span-2 text-center sh:text-start">{admin.role}</p>
                         <p className="capitalize col-span-1 mx-auto">{admin.cohortAssigned ? admin.cohortAssigned : '-'}</p>
-                        <div className="flex gap-3 justify-center">
+                        <div className="flex lg:flex-row flex-col gap-3 justify-center">
                             <button
                                 onClick={() => openEditModal(admin)}
-                                className="border border-black rounded-lg px-3 py-1 text-sm"
+                                className="border border-black rounded-lg px-3 py-1 sa:text-sm text-xs"
                             >
                                 Edit
                             </button>
                             <button
                                 onClick={() => setDeleteModal(admin)}
-                                className="bg-red-600 text-white rounded-lg px-3 py-1 text-sm"
+                                className="bg-red-600 text-white rounded-lg px-3 py-1 sa:text-sm text-xs"
                             >
                                 Delete
                             </button>
@@ -196,7 +196,7 @@ const Admins = () => {
 
             {/* Edit Modal */}
             {editModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                <div className="fixed inset-0 bg-black/50 px-3 flex items-center justify-center z-50">
                     <div className="bg-white p-6 rounded-lg w-full max-w-md">
                         <h2 className="text-lg font-bold mb-4">Edit Admin</h2>
                         <div className="flex flex-col gap-3">
@@ -246,23 +246,23 @@ const Admins = () => {
 
             {/* Delete Confirmation Modal */}
             {deleteModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                <div className="fixed inset-0 bg-black/50 px-3 flex items-center justify-center z-50">
                     <div className="bg-white p-6 rounded-lg w-full max-w-md text-center">
                         <h2 className="text-lg font-bold mb-3 text-red-700">Confirm Delete</h2>
                         <p>
                             Are you sure you want to delete admin{" "}
                             <strong>
-                                {deleteModal.firstName} {deleteModal.lastName}
+                                {deleteModal.name}
                             </strong>
                             ?
                         </p>
                         <div className="flex justify-center gap-4 mt-6">
-                            <button onClick={() => setDeleteModal(null)} className="text-gray-600 border border-black/40 rounded-md px-2">
+                            <button onClick={() => setDeleteModal(null)} className="text-gray-600 border border-black/40 rounded-md p-2">
                                 Cancel
                             </button>
                             <button
                                 onClick={handleDelete}
-                                className="bg-red-600 text-white px-4 py-2 rounded"
+                                className="bg-red-600 text-white px-4 py-2 rounded-md"
                             >
                                 Delete
                             </button>

@@ -1,16 +1,27 @@
 import { useEffect, useState } from "react";
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { FiSearch } from "react-icons/fi";
 
 const Students = () => {
+    const navigate = useNavigate()
     const [students, setStudents] = useState([]);
     const [filteredStudents, setFilteredStudents] = useState([]);
     const [loading, setLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [searchQuery, setSearchQuery] = useState("");
+    const [smScreen, setSmScreen] = useState(window.innerWidth <= 600);
     const [sortOption, setSortOption] = useState("firstName-asc");
 
     const studentsPerPage = 40;
+
+    useEffect(() => {
+        const handleResize = () => {
+            setSmScreen(window.innerWidth <= 600)
+        }
+        window.addEventListener('resize', handleResize)
+
+        return () => window.removeEventListener('resize', handleResize)
+    }, [])
 
     const getStudents = async () => {
         const adminToken = localStorage.getItem("adminToken");
@@ -112,7 +123,7 @@ const Students = () => {
     };
 
     return (
-        <div className="px-10 py-14 w-full">
+        <div className="sa:px-10 px-3 py-14 w-full">
             {/* 🔍 Search and Sort */}
             <div className="flex items-center justify-between mb-6 gap-4 flex-wrap">
                 <div className="relative w-full max-w-md">
@@ -140,12 +151,12 @@ const Students = () => {
 
             {/* 🧾 Table Header */}
             <div className="w-full">
-                <div className="grid grid-cols-9 gap-5 text-[14px] py-3 border-b border-black/30 text-black/50 font-medium">
+                <div className="grid sh:grid-cols-9 grid-cols-7 gap-5 text-[14px] py-3 border-b border-black/30 text-black/50 font-medium">
                     <p className="col-span-2">First Name</p>
-                    <p className="col-span-1">Last Name</p>
+                    <p className="sh:col-span-1 col-span-2">Last Name</p>
                     <p className="col-span-3">Email Address</p>
-                    <p className="col-span-2">Join Date</p>
-                    <p>Details</p>
+                    <p className="col-span-2 sh:block hidden">Join Date</p>
+                    <p className="sh:block hidden">Details</p>
                 </div>
             </div>
 
@@ -158,12 +169,17 @@ const Students = () => {
                 currentStudents.map((student, i) => (
                     <div
                         key={i}
-                        className="grid grid-cols-9 gap-5 text-[14px] py-10 border-b border-black/30 text-black font-medium"
+                        onClick={() => {
+                            if (smScreen) {
+                                navigate(`/students/${student._id}`)
+                            }
+                        }}
+                        className="grid sh:grid-cols-9 grid-cols-7 pt-9 sh:hover:bg-transparent hover:bg-black/10 sh:cursor-auto cursor-pointer gap-5 text-[14px] sh:py-10 py-5 border-b border-black/30 text-black font-medium"
                     >
                         <p className="col-span-2 capitalize truncate">{student.firstName}</p>
-                        <p className="col-span-1 capitalize truncate">{student.lastName}</p>
+                        <p className="sh:col-span-1 col-span-2 capitalize truncate">{student.lastName}</p>
                         <p className="col-span-3 truncate">{student.email}</p>
-                        <p className="col-span-2 truncate">
+                        <p className="col-span-2 truncate sh:block hidden">
                             {new Date(student.createdAt).toLocaleDateString("en-US", {
                                 year: "numeric",
                                 month: "short",
@@ -171,64 +187,73 @@ const Students = () => {
                             })}
                         </p>
                         <Link to={`/students/${student._id}`}>
-                            <p className="text-blue-400 cursor-pointer font-normal">Details</p>
+                            <p className="text-blue-400 sh:block hidden cursor-pointer font-normal">Details</p>
                         </Link>
                     </div>
                 ))
             )}
 
             {/* 🔢 Pagination */}
-            <div className="flex justify-center mt-10 space-x-2 flex-wrap">
-                <button
-                    onClick={() => setCurrentPage(1)}
-                    disabled={currentPage === 1}
-                    className={`px-3 py-2 border rounded ${currentPage === 1 ? "bg-gray-200 text-gray-500 cursor-not-allowed" : "bg-white text-black border-blue-600 hover:bg-blue-50"}`}
-                >
-                    ⏮
-                </button>
+            <div className="flex flex-wra sp:flex-row flex-col justify-center items-center sp:gap-2 gap-5 mt-10 text-sm sm:text-base">
+                {/* First Page Button */}
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => setCurrentPage(1)}
+                        disabled={currentPage === 1}
+                        className={`px-2 sm:px-3 py-1 sm:py-2 border rounded ${currentPage === 1 ? "bg-gray-200 text-gray-500 cursor-not-allowed" : "bg-white text-black border-blue-600 hover:bg-blue-50"}`}
+                    >
+                        ⏮
+                    </button>
 
-                <button
-                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                    disabled={currentPage === 1}
-                    className={`px-3 py-2 border rounded ${currentPage === 1 ? "bg-gray-200 text-gray-500 cursor-not-allowed" : "bg-white text-black border-blue-600 hover:bg-blue-50"}`}
-                >
-                    ⬅
-                </button>
+                    {/* Previous Page Button */}
+                    <button
+                        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1}
+                        className={`px-2 sm:px-3 py-1 sm:py-2 border rounded ${currentPage === 1 ? "bg-gray-200 text-gray-500 cursor-not-allowed" : "bg-white text-black border-blue-600 hover:bg-blue-50"}`}
+                    >
+                        ⬅
+                    </button>
+                </div>
 
-                {getPageNumbers().map((page, i) =>
-                    page === "..." ? (
-                        <span key={i} className="px-3 py-2 text-gray-500 select-none">
-                            ...
-                        </span>
-                    ) : (
-                        <button
-                            key={i}
-                            onClick={() => setCurrentPage(page)}
-                            className={`px-4 py-2 border rounded ${currentPage === page
+                {/* Page Numbers */}
+                <div className="flex gap-2">
+                    {getPageNumbers().map((page, i) =>
+                        page === "..." ? (
+                            <span key={i} className="px-2 sm:px-3 py-1 sm:py-2 text-gray-500 select-none">...</span>
+                        ) : (
+                            <button
+                                key={i}
+                                onClick={() => setCurrentPage(page)}
+                                className={`px-2 sm:px-4 py-1 sm:py-2 border rounded ${currentPage === page
                                     ? "bg-blue-600 text-white border-blue-600"
                                     : "bg-white text-blue-600 border-blue-600 hover:bg-blue-50"
-                                }`}
-                        >
-                            {page}
-                        </button>
-                    )
-                )}
+                                    }`}
+                            >
+                                {page}
+                            </button>
+                        )
+                    )}
+                </div>
 
-                <button
-                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                    disabled={currentPage === totalPages}
-                    className={`px-3 py-2 border rounded ${currentPage === totalPages ? "bg-gray-200 text-gray-500 cursor-not-allowed" : "bg-white border-blue-600 hover:bg-blue-50"}`}
-                >
-                    ➡
-                </button>
+                {/* Next Page Button */}
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                        disabled={currentPage === totalPages}
+                        className={`px-2 sm:px-3 py-1 sm:py-2 border rounded ${currentPage === totalPages ? "bg-gray-200 text-gray-500 cursor-not-allowed" : "bg-white border-blue-600 hover:bg-blue-50"}`}
+                    >
+                        ➡
+                    </button>
 
-                <button
-                    onClick={() => setCurrentPage(totalPages)}
-                    disabled={currentPage === totalPages}
-                    className={`px-3 py-2 border rounded ${currentPage === totalPages ? "bg-gray-200 text-gray-500 cursor-not-allowed" : "bg-white border-blue-600 hover:bg-blue-50"}`}
-                >
-                    ⏭
-                </button>
+                    {/* Last Page Button */}
+                    <button
+                        onClick={() => setCurrentPage(totalPages)}
+                        disabled={currentPage === totalPages}
+                        className={`px-2 sm:px-3 py-1 sm:py-2 border rounded ${currentPage === totalPages ? "bg-gray-200 text-gray-500 cursor-not-allowed" : "bg-white border-blue-600 hover:bg-blue-50"}`}
+                    >
+                        ⏭
+                    </button>
+                </div>
             </div>
         </div>
     );

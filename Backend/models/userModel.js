@@ -24,6 +24,7 @@ const userSchema = new Schema({
   cohortApplied: { type: String, default: null },
   dateOfBirth: { type: Date, default: null },
   notes: { type: String, default: null },
+  certificatesEarned: { type: String, default: null },
   quizAttempts: [
     { type: Schema.Types.ObjectId, ref: 'QuizAttempt' }
   ],

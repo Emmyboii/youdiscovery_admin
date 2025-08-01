@@ -11,6 +11,7 @@ import createUserRoutes from './Routes/user.js';
 import adminRoutes from './Routes/admin.js';
 import adminEmailRoutes from './Routes/adminEmail.js';
 import statsRoutes from './Routes/stats.js';
+import activiesRoutes from './Routes/activities.js';
 import groupRoutes from './Routes/groups.js';
 
 config(); // Load .env
@@ -24,6 +25,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/admins', adminRoutes);
 app.use('/api/admin', adminEmailRoutes);
 app.use('/api/stats', statsRoutes);
+app.use('/api/activities', activiesRoutes);
 app.use('/api/groups', groupRoutes);
 
 app.get('/', (req, res) => {

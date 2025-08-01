@@ -20,13 +20,13 @@ const ActivityBarChart = ({ stats }) => {
   }[range] || 0;
 
   return (
-    <div className="p-4 bg-white rounded-xl shadow-md w-full max-w-4xl mx-auto mt-6">
+    <div className="bg-white w-full">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold text-gray-700">Learning Consistency</h2>
+        <h2 className="sa:text-xl text-[17px] font-semibold text-gray-700">📈 Learning Consistency</h2>
         <select
           value={range}
           onChange={(e) => setRange(Number(e.target.value))}
-          className="border rounded px-2 py-1 text-sm"
+          className="border rounded sa:px-2 py-1 text-sm"
         >
           <option value={7}>Last 7 days</option>
           <option value={30}>Last 30 days</option>
@@ -34,13 +34,13 @@ const ActivityBarChart = ({ stats }) => {
         </select>
       </div>
 
-      <div className="mb-4 text-sm text-gray-600">
-        <span className="font-medium text-lg">Consistency:</span> {consistencyPercentage}% | 
-        <span className="ml-2 font-medium text-lg">Badge:</span> <span className="text-lg">{badge}</span>
+      <div className="mb-4 text-sm sa:flex items-center gap-1 text-gray-600">
+        <span className="font-medium sd:text-lg text-base">Consistency:</span> {consistencyPercentage}% <span className='sa:block hidden'>|</span> <br className='sa:hidden block' />
+        <span className="sa:ml-2 font-medium sd:text-lg text-base">Badge:</span> <span className="sd:text-lg text-base">{badge}</span>
       </div>
 
       <ResponsiveContainer width="100%" height={300}>
-        <BarChart data={filteredData}>
+        <BarChart margin={{ top: 10, right: 10, left: -40, bottom: 20 }} data={filteredData}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="date" tick={{ fontSize: 10 }} />
           <YAxis allowDecimals={false} domain={[0, 1]} />

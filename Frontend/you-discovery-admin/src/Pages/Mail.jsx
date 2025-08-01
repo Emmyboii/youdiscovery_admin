@@ -128,7 +128,7 @@ const Mail = () => {
     }, [modal]);
 
     return (
-        <div className="flex flex-col max-w-[700px items-center my-5 px-10 gap-6 mx-auto w-full">
+        <div className="flex flex-col items-center my-5 mh:px-10 px-3 gap-6 mx-auto w-full">
             {modal && (
                 <div className={`${status.type === 'error' ? 'bg-red-500' : 'bg-green-500'} text-white fixed top-[80px] z-50 right p-3 rounded-md flex items-center text-center justify-between`}>
                     <p className='text-[16px] 3xl:text-[22px] font-bold'>
@@ -136,9 +136,9 @@ const Mail = () => {
                     </p>
                 </div>
             )}
-            <div className="flex items-start justify-between w-full">
+            <div className="flex sd:items-start items-center sd:flex-row flex-col gap-4 justify-between mt-5 w-full">
                 <div>
-                    <p className="text-[33px] font-bold">Send Message to All Users</p>
+                    <p className="md:text-[33px] text-[27px] font-bold">Send Message to All Users</p>
 
                     {userCount !== null && (
                         <div className="text-base text-gray-700 my-2 italic">
@@ -183,11 +183,11 @@ const Mail = () => {
                     </form>
                 </div>
 
-                <div className="flex flex-col gap-4 bg-gray-50 border p-4 rounded-lg">
+                <div className="flex flex-col gap-4 bg-gray-50 w-full sd:w-auto border p-4 rounded-lg">
                     <p className="font-semibold">Filter Options (Optional)</p>
 
                     <label className="flex flex-col gap-1">
-                        <span>Minimum Completed Classes</span>
+                        <span className="sm:text-base sd:text-sm text-base">Minimum Completed Classes</span>
                         <input
                             type="number"
                             name="minCompletedClasses"
@@ -198,7 +198,7 @@ const Mail = () => {
                     </label>
 
                     <label className="flex flex-col gap-1">
-                        <span>Cohort Applied</span>
+                        <span className="sm:text-base sd:text-sm text-base">Cohort Applied</span>
                         <input
                             type="text"
                             name="cohortApplied"

@@ -27,7 +27,9 @@ const UserDetails = () => {
     const [quizAttempted, setQuizAttempted] = useState('')
     // const [quizPasses, setQuizPasses] = useState('')
     const [quizAverage, setQuizAverage] = useState('')
+    const [strengthLvl, setStrengthLvl] = useState('')
     const [stats, setStats] = useState(null);
+    const [timeline, setTimeline] = useState([]);
 
     const validateForm = () => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -142,10 +144,38 @@ const UserDetails = () => {
         getStats()
     }, [id])
 
+    useEffect(() => {
+        const fetchTimeline = async () => {
+            try {
+                const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/activities/user/${id}/timeline`);
+                const data = await res.json();
+                setTimeline(data.timeline || []);
+            } catch (err) {
+                console.error('Failed to fetch timeline:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchTimeline();
+    }, [id]);
+
     const chapterPercentage = (chaptersCompleted / totalChapter) * 100
     const coursesPercentage = (coursesCompleted / totalCourses) * 100
     const quizPercentage = (quizAttempted / quiz) * 100
     const classPercentage = (classesCompleted / totalClasses) * 100
+
+    useEffect(() => {
+        if (quizAverage >= 80) {
+            setStrengthLvl('Outstanding')
+        } else if (quizAverage >= 60) {
+            setStrengthLvl('Good')
+        } else if (quizAverage >= 45) {
+            setStrengthLvl('Average')
+        } else if (quizAverage < 45) {
+            setStrengthLvl('Fair')
+        }
+    }, [quizAverage])
 
     useEffect(() => {
         if (modal) {
@@ -209,7 +239,7 @@ const UserDetails = () => {
             {loading ? (
                 <p className="my-5 text-center font-medium text-lg">Fetching Student details...</p>
             ) : (
-                <div className='flex flex-col gap-4 px-10 py-14'>
+                <div className='flex flex-col gap-4 mh:px-10 px-3 py-14'>
                     {modal && (
                         <div className={`${status.type === 'error' ? 'bg-red-500' : 'bg-green-500'} text-white fixed top-[80px] z-50 right p-3 rounded-md flex items-center text-center justify-between`}>
                             <p className='text-[16px] 3xl:text-[22px] font-bold'>
@@ -218,145 +248,10 @@ const UserDetails = () => {
                         </div>
                     )}
                     <h1 className="text-[18px] text-[#252525] mk:hidden block font-medium mb-2">Student's Information</h1>
-                    <div className='border-[1.5px] border-[#25252533] sd:rounded-[20px] rounded-xl flex flex-col gap-[26px] sd:py-[30px] p-[20px] sd:px-[50px]'>
-                        <p className='text-[21px] font-medium text-[#252525]'>Personal Information</p>
-                        <div className='flex justify-between items-start w-full'>
-                            <div className='flex flex-col gap-[33px] w-full'>
-                                <div className='flex flex-col gap-3'>
-                                    <p className='text-xs md:text-[14px] font-medium text-[#25252580]'>First Name</p>
-                                    <input
-                                        type="text"
-                                        value={students?.firstName}
-                                        onChange={handleChange}
-                                        className={`text-[14px] md:text-[16px] font-medium text-[#252525] outline-none ${edit && 'outline-black/50 w-[70%] px-2 py-1 rounded'}`}
-                                        name="firstName"
-                                        id=""
-                                        readOnly={!edit}
-                                    />
-                                </div>
-                                <div className='flex flex-col gap-3'>
-                                    <p className='text-xs md:text-[14px] font-medium text-[#25252580]'>Email</p>
-                                    {edit ? (
-                                        <input
-                                            type="text"
-                                            value={students?.email}
-                                            onChange={handleChange}
-                                            className={`text-[14px] md:text-[16px] font-medium text-[#252525] w-full outline-none ${edit && 'outline-black/50 w-[70%] px-2 py-1 rounded'}`}
-                                            name="email"
-                                        />
-                                    ) : (
-                                        <a
-                                            href={`mailto:${students?.email}`}
-                                            className="text-[14px] md:text-[16px] font-medium text-[#252525] underline w-fit"
-                                        >
-                                            {students?.email}
-                                        </a>
-                                    )}
-                                    {validationError.email && <p className='text-red-500 text-[14px]'>{validationError.email}</p>}
-                                </div>
-                                <div className='flex flex-col gap-3'>
-                                    <p className='text-xs md:text-[14px] font-medium text-[#25252580]'>Date of Birth</p>
-
-                                    {edit ? (
-                                        <input
-                                            type="date"
-                                            name="dateOfBirth"
-                                            value={
-                                                students?.dateOfBirth
-                                                    ? new Date(students?.dateOfBirth).toISOString().split("T")[0]
-                                                    : ''
-                                            }
-                                            onChange={handleChange}
-                                            className="text-[14px] md:text-[16px] font-medium text-[#252525] border-[2px] border-black/50 outline-black/50 w-[70%] rounded-lg px-2 py-1"
-                                        />
-                                    ) : (
-                                        <p className='text-[14px] md:text-[16px] font-medium text-[#252525]'>
-                                            {students?.dateOfBirth
-                                                ? new Date(students?.dateOfBirth).toLocaleDateString('en-US', {
-                                                    year: 'numeric',
-                                                    month: 'short',
-                                                    day: 'numeric',
-                                                })
-                                                : 'Not Provided'}
-                                        </p>
-                                    )}
-                                </div>
-                            </div>
-                            <div className='flex flex-col gap-[33px] w-full'>
-                                <div className='flex flex-col gap-3'>
-                                    <p className='text-xs md:text-[14px] font-medium text-[#25252580]'>Last Name</p>
-                                    <input
-                                        type="text"
-                                        value={students?.lastName}
-                                        onChange={handleChange}
-                                        className={`text-[14px] md:text-[16px] font-medium text-[#252525] outline-none ${edit && 'outline-black/50 w-[70%] px-2 py-1 rounded'}`}
-                                        name="lastName"
-                                        id=""
-                                        readOnly={!edit}
-                                    />
-                                </div>
-                                <div className='flex flex-col gap-3'>
-                                    <p className='text-xs md:text-[14px] font-medium text-[#25252580]'>Phone Number</p>
-                                    {edit ? (
-                                        <input
-                                            type="text"
-                                            value={students?.phonenumber}
-                                            onChange={handleChange}
-                                            className={`text-[14px] md:text-[16px] font-medium text-[#252525] outline-none ${edit && 'outline-black/50 w-[70%] px-2 py-1 rounded'}`}
-                                            name="phonenumber"
-                                        />
-                                    ) : (
-                                        <a
-                                            href={`tel:${students?.phonenumber}`}
-                                            className="text-[14px] md:text-[16px] font-medium text-[#252525] underline w-fit"
-                                        >
-                                            {students.phonenumber}
-                                        </a>
-                                    )}
-                                </div>
-                                <div className='flex flex-col gap-3'>
-                                    <p className='text-xs md:text-[14px] font-medium text-[#25252580]'>Is Active</p>
-                                    <input
-                                        type="text"
-                                        value={students?.isActive}
-                                        onChange={handleChange}
-                                        className={`text-[14px] md:text-[16px] capitalize font-medium text-[#252525] outline-none ${edit && 'outline-black/50 w-[70%] px-2 py-1 rounded'}`}
-                                        name="isActive"
-                                        id=""
-                                        readOnly={!edit}
-                                    />
-                                </div>
-                            </div>
-                            <div className='flex flex-col gap-[33px] w-full'>
-                                <div className='flex flex-col gap-3'>
-                                    <p className='text-xs md:text-[14px] font-medium text-[#25252580]'>Cohort</p>
-                                    {edit ? (
-                                        <input
-                                            type="text"
-                                            value={students?.cohortApplied}
-                                            onChange={handleChange}
-                                            className={`text-[14px] md:text-[16px] font-medium text-[#252525] outline-none ${edit && 'outline-black/50 w-[70%] px-2 py-1 rounded'}`}
-                                            name="cohortApplied"
-                                        />
-                                    ) : (
-                                        <p className="text-[14px] md:text-[16px] font-medium text-[#252525]">
-                                            {students.cohortApplied ? students.cohortApplied : 'Not Provided'}
-                                        </p>
-                                    )}
-                                </div>
-                                <div className='flex flex-col gap-3'>
-                                    <p className='text-xs md:text-[14px] font-medium text-[#25252580]'>Date Joined</p>
-
-                                    <p className="text-[14px] md:text-[16px] font-medium text-[#252525]">
-                                        {new Date(students.createdAt).toLocaleDateString('en-US', {
-                                            year: 'numeric',
-                                            month: 'short',
-                                            day: '2-digit'
-                                        })}
-                                    </p>
-                                </div>
-                            </div>
-                            <div className='flex flex-col gap-2'>
+                    <div className='border-[1.5px] border-[#25252533] sd:rounded-[20px] rounded-xl flex flex-col gap-[26px] sd:py-[30px] p-[20px] xl:px-[50px]'>
+                        <div className='flex items-center justify-between gap-3'>
+                            <p className='sa:text-xl text-lg font-medium text-[#252525]'>🙋 Personal Information</p>
+                            <div className='flex sh:hidden flex-col gap-2'>
                                 <div onClick={(e) => {
                                     if (edit) {
                                         editProfile(e)
@@ -390,24 +285,213 @@ const UserDetails = () => {
                                 )}
                             </div>
                         </div>
-                        <div className='flex flex-col gap-3'>
-                            <p className='text-xs md:text-[14px] font-medium text-[#25252580]'>Comment</p>
+                        <div className='flex sh:flex-row flex-col justify-between sh:gap-2 gap-8 sh:items-start items-center w-full'>
+                            <div className='flex sp:gap-2 gap-5 sp:flex-row flex-col items-center sh:items-start w-full justify-between'>
+                                <div className='flex flex-col gap-[33px] items-center sh:items-start w-full'>
+                                    <div className='flex flex-col gap-3'>
+                                        <p className='text-xs md:text-[14px] text-center sh:text-start font-medium text-[#25252580]'>First Name</p>
+                                        <input
+                                            type="text"
+                                            value={students?.firstName}
+                                            onChange={handleChange}
+                                            className={`text-[14px] md:text-[16px] text-center sh:text-start w-full font-medium text-[#252525] outline-none ${edit && 'outline-black/50 w-[70%] px-2 py-1 rounded'}`}
+                                            name="firstName"
+                                            id=""
+                                            readOnly={!edit}
+                                        />
+                                    </div>
+                                    <div className='flex flex-col gap-3'>
+                                        <p className='text-xs md:text-[14px] font-medium text-center sh:text-start text-[#25252580]'>Email</p>
+                                        {edit ? (
+                                            <input
+                                                type="text"
+                                                value={students?.email}
+                                                onChange={handleChange}
+                                                className={`text-[14px] md:text-[16px] text-center sh:text-start font-medium text-[#252525] w-full outline-none ${edit && 'outline-black/50 sh:w-[70%] w-full px-2 py-1 rounded'}`}
+                                                name="email"
+                                            />
+                                        ) : (
+                                            <a
+                                                href={`mailto:${students?.email}`}
+                                                className="text-[14px] md:text-[16px] text-center sh:text-start font-medium text-[#252525] underline w-fit"
+                                            >
+                                                {students?.email}
+                                            </a>
+                                        )}
+                                        {validationError.email && <p className='text-red-500 text-[14px]'>{validationError.email}</p>}
+                                    </div>
+                                    <div className='flex flex-col gap-3'>
+                                        <p className='text-xs md:text-[14px] text-center sh:text-start font-medium text-[#25252580]'>Date of Birth</p>
+
+                                        {edit ? (
+                                            <input
+                                                type="date"
+                                                name="dateOfBirth"
+                                                value={
+                                                    students?.dateOfBirth
+                                                        ? new Date(students?.dateOfBirth).toISOString().split("T")[0]
+                                                        : ''
+                                                }
+                                                onChange={handleChange}
+                                                className="text-[14px] md:text-[16px] text-center sh:text-start font-medium text-[#252525] border-[2px] border-black/50 outline-black/50 sh:w-[70%] rounded-lg px-2 py-1"
+                                            />
+                                        ) : (
+                                            <p className='text-[14px] md:text-[16px] text-center sh:text-start font-medium text-[#252525]'>
+                                                {students?.dateOfBirth
+                                                    ? new Date(students?.dateOfBirth).toLocaleDateString('en-US', {
+                                                        year: 'numeric',
+                                                        month: 'short',
+                                                        day: 'numeric',
+                                                    })
+                                                    : 'Not Provided'}
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+                                <div className='flex flex-col gap-[33px] items-center sh:items-start w-full'>
+                                    <div className='flex flex-col gap-3'>
+                                        <p className='text-xs md:text-[14px] text-center sh:text-start font-medium text-[#25252580]'>Last Name</p>
+                                        <input
+                                            type="text"
+                                            value={students?.lastName}
+                                            onChange={handleChange}
+                                            className={`text-[14px] md:text-[16px] text-center sh:text-start font-medium text-[#252525] outline-none ${edit && 'outline-black/50 sh:w-[70%] px-2 py-1 rounded'}`}
+                                            name="lastName"
+                                            id=""
+                                            readOnly={!edit}
+                                        />
+                                    </div>
+                                    <div className='flex flex-col gap-3'>
+                                        <p className='text-xs md:text-[14px] text-center sh:text-start font-medium text-[#25252580]'>Phone Number</p>
+                                        {edit ? (
+                                            <input
+                                                type="text"
+                                                value={students?.phonenumber}
+                                                onChange={handleChange}
+                                                className={`text-[14px] md:text-[16px] text-center sh:text-start font-medium text-[#252525] outline-none ${edit && 'outline-black/50 sh:w-[70%] px-2 py-1 rounded'}`}
+                                                name="phonenumber"
+                                            />
+                                        ) : (
+                                            <a
+                                                href={`tel:${students?.phonenumber}`}
+                                                className="text-[14px] md:text-[16px] text-center sh:text-start font-medium text-[#252525] underline w-fit"
+                                            >
+                                                {students.phonenumber}
+                                            </a>
+                                        )}
+                                    </div>
+                                    <div className='flex flex-col gap-3 text-center'>
+                                        <p className='text-xs md:text-[14px] text-center sh:text-start font-medium text-[#25252580]'>Is Active</p>
+                                        <input
+                                            type="text"
+                                            value={students?.isActive}
+                                            onChange={handleChange}
+                                            className={`text-[14px] md:text-[16px] text-center sh:text-start capitalize font-medium text-[#252525] outline-none ${edit && 'outline-black/50 sh:w-[70%] px-2 py-1 rounded'}`}
+                                            name="isActive"
+                                            id=""
+                                            readOnly={!edit}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                            <div className='flex gap-2 sh:w-1/2 w-full'>
+                                <div className='flex flex-col gap-[33px] items-center sh:items-start w-full'>
+                                    <div className='flex flex-col gap-3'>
+                                        <p className='text-xs md:text-[14px] text-center sh:text-start font-medium text-[#25252580]'>Cohort</p>
+                                        {edit ? (
+                                            <input
+                                                type="text"
+                                                value={students?.cohortApplied}
+                                                onChange={handleChange}
+                                                className={`text-[14px] md:text-[16px] text-center sh:text-start font-medium text-[#252525] outline-none ${edit && 'outline-black/50 sh:w-[70%] px-2 py-1 rounded'}`}
+                                                name="cohortApplied"
+                                            />
+                                        ) : (
+                                            <p className="text-[14px] md:text-[16px] text-center sh:text-start font-medium text-[#252525]">
+                                                {students.cohortApplied ? students.cohortApplied : 'Not Provided'}
+                                            </p>
+                                        )}
+                                    </div>
+                                    <div className='flex flex-col gap-3'>
+                                        <p className='text-xs md:text-[14px] text-center sh:text-start font-medium text-[#25252580]'>Date Joined</p>
+
+                                        <p className="text-[14px] md:text-[16px] text-center sh:text-start font-medium text-[#252525]">
+                                            {new Date(students.createdAt).toLocaleDateString('en-US', {
+                                                year: 'numeric',
+                                                month: 'short',
+                                                day: '2-digit'
+                                            })}
+                                        </p>
+                                    </div>
+                                    <div className='flex flex-col gap-3'>
+                                        <p className='text-xs md:text-[14px] text-center sh:text-start font-medium text-[#25252580]'>Cerificates Earned</p>
+                                        {edit ? (
+                                            <textarea
+                                                value={students?.certificatesEarned}
+                                                onChange={handleChange}
+                                                className={`text-[14px] md:text-[16px] text-center sh:text-start font-medium text-[#252525] outline-none ${edit && 'outline-black/50 sh:w-[70%] px-2 py-1 rounded'}`}
+                                                name="certificatesEarned"
+                                            />
+                                        ) : (
+                                            <p className="text-[14px] md:text-[16px] text-center sh:text-start font-medium text-[#252525]">
+                                                {students.certificatesEarned ? students.certificatesEarned : 'No Cerificates yet'}
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+                                <div className='sh:flex hidden flex-col gap-2'>
+                                    <div onClick={(e) => {
+                                        if (edit) {
+                                            editProfile(e)
+                                        } else {
+                                            setEdit(true)
+                                        }
+                                    }}
+                                        className="text-[16px] cursor-pointer gap-1 font-normal sd:py-[5px] py-[2px] sd:px-[21px] px-[14px] flex items-center justify-center rounded-[20px] text-[#441890] hover:bg-black/10 bg-[#ffffff] border-[0.8px] border-[#441890]"
+                                    >
+                                        {edit ? (
+                                            <p>
+                                                {submitting ? "Saving..." : "Save"}
+                                            </p>
+                                        ) : (
+                                            <p>Edit</p>
+                                        )}
+                                        {edit ? (
+                                            <FiSave />
+                                        ) : (
+                                            <img src={editImg} alt="" />
+                                        )}
+                                    </div>
+                                    {edit && (
+                                        <p
+                                            className="text-[16px] cursor-pointer gap-1 font-normal sd:py-[5px] py-[2px] sd:px-[21px] px-[14px] flex items-center justify-center rounded-[20px] text-[#441890] hover:bg-black/10 bg-[#ffffff] border-[0.8px] border-[#441890]"
+                                            onClick={() => setEdit(false)}
+                                        >
+                                            Cancel
+                                            <FaTimes />
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                        <div className='flex flex-col items-center sh:items-start gap-3'>
+                            <p className='text-xs md:text-[14px] text-center sh:text-start font-medium text-[#25252580]'>Comment</p>
                             {edit ? (
                                 <textarea
                                     value={students?.note}
                                     onChange={handleChange}
-                                    className={`text-[14px] md:text-[16px] font-medium text-[#252525] outline-none ${edit && 'outline-black/50 w-[70%] px-2 py-1 rounded'}`}
-                                    name="cohortApplied"
+                                    className={`text-[14px] md:text-[16px] text-center sh:text-start font-medium text-[#252525] outline-none ${edit && 'outline-black/50 w-[70%] px-2 py-1 rounded'}`}
+                                    name="note"
                                 />
                             ) : (
-                                <p className="text-[14px] md:text-[16px] font-medium text-[#252525]">
+                                <p className="text-[14px] md:text-[16px] text-center sh:text-start font-medium text-[#252525]">
                                     {students.note ? students.note : 'No Comment'}
                                 </p>
                             )}
                         </div>
                     </div>
-                    <div className='border-[1.5px] border-[#25252533] sd:rounded-[20px] rounded-xl flex flex-col gap-[26px] sd:py-[30px] p-[20px] sd:px-[50px]'>
-                        <p className='text-[21px] font-medium text-[#252525]'>Activities</p>
+                    <div className='border-[1.5px] border-[#25252533] sd:rounded-[20px] rounded-xl flex flex-col gap-[26px] sd:py-[30px] p-[20px] xl:px-[50px]'>
+                        <p className='sa:text-xl text-lg font-medium text-[#252525]'>📊 Performance Summary</p>
                         <div className='flex justify-between items-start w-full'>
                             <div className='flex flex-col gap-[33px]'>
                                 <div className='flex flex-col gap-3'>
@@ -434,7 +518,6 @@ const UserDetails = () => {
                                         ></div>
                                     </div>
                                 </div>
-
                             </div>
                             <div className='flex flex-col gap-[33px]'>
                                 <div className='flex flex-col gap-3'>
@@ -462,18 +545,58 @@ const UserDetails = () => {
                                     </div>
                                 </div>
                             </div>
-                            <div className='flex flex-col gap-[33px]'>
+                            <div className='flex flex-col gap-[65px]'>
                                 <div className='flex flex-col gap-3'>
                                     <p className='text-[15px] md:text-[17px] font-medium text-[#25252580]'>Quiz Average</p>
                                     <p className='text-[14px] md:text-[16px] text-center font-medium text-[#252525] outline-none'>
                                         <span>{quizAverage}%</span>
                                     </p>
                                 </div>
+                                <div className='flex flex-col gap-3'>
+                                    <p className='text-[15px] md:text-[17px] font-medium text-[#25252580]'>Strength Level</p>
+                                    <p className='text-[14px] md:text-[16px] text-center font-medium text-[#252525] outline-none'>
+                                        <span>{strengthLvl}</span>
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div className='border-[1.5px] border-[#25252533] sd:rounded-[20px] rounded-xl flex flex-col gap-[26px] sd:py-[30px] p-[20px] sd:px-[50px]'>
+                    <div className='border-[1.5px] border-[#25252533] sd:rounded-[20px] rounded-xl flex flex-col gap-[26px] sd:py-[30px] p-[15px] xl:px-[50px]'>
                         <ActivityBarChart stats={stats} />
+                    </div>
+                    <div className="border border-gray-200 rounded-2xl bg-white p-5 sm:p-8 space-y-6 shadow-md">
+                        <h2 className="sa:text-xl text-lg font-semibold text-gray-800 flex items-center gap-2">
+                            <span className="text-blue-600">📘</span> Recent Activity
+                        </h2>
+
+                        {timeline.length === 0 ? (
+                            <p className="text-gray-500">No recent activity yet.</p>
+                        ) : (
+                            <div className="space-y-4">
+                                {timeline.map((item) => (
+                                    <div
+                                        key={item.blogId}
+                                        className="border border-gray-100 rounded-xl bg-gray-50 p-4 hover:shadow-sm transition duration-200"
+                                    >
+                                        <div className="flex justify-between items-start">
+                                            <div>
+                                                <h3 className="sm:text-lg sa:text-base text-sm font-semibold text-gray-800">{item.blogTitle}</h3>
+                                                <p className="sa:text-sm text-xs text-gray-600 mt-1">
+                                                    <span className="font-medium">Chapter:</span> {item.chapterTitle}
+                                                </p>
+                                                <p className="sa:text-sm text-xs text-gray-600">
+                                                    <span className="font-medium">Course:</span> {item.courseNumber || 'N/A'}
+                                                </p>
+                                            </div>
+                                            <div className="sa:text-sm text-xs text-gray-500 text-right">
+                                                <p className="font-medium text-green-500">Completed</p>
+                                                <p>{new Date(item.completedAt).toLocaleDateString()}<br />{new Date(item.completedAt).toLocaleTimeString()}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
             )}

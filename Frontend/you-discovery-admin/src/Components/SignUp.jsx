@@ -100,7 +100,7 @@ const SignUp = () => {
                         {modal && (
                             <div className={`${status.type === 'error' ? 'bg-red-500' : 'bg-green-500'} text-white absolute top-[70px] z-50 right-0 p-3 rounded-md flex items-center text-center justify-between`}>
                                 <p className='md:text-[16px] text-[13px] 3xl:text-[22px] font-bold'>
-                                    {status.message}
+                                    {status.type === 'error' ? `${status.message}` : `${status.message}. Redirecting...`}
                                 </p>
                             </div>
                         )}

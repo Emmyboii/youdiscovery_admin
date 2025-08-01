@@ -1,43 +1,37 @@
-import { useEffect, useState } from 'react';
 import logo from '../Images/yd.webp';
-import { FaUserCircle } from "react-icons/fa";
+import { FaSignOutAlt, FaUserCircle } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import { IoIosArrowDown } from "react-icons/io";
+import { useState } from 'react';
 
-const Navbar = () => {
+const Navbar = ({ admins }) => {
 
-    const [admins, setAdmins] = useState([])
+    const [open, setOpen] = useState(false)
 
-    // const firstName = admins[0]?.name?.split(" ")[0];
-
-    useEffect(() => {
-        const adminToken = localStorage.getItem('adminToken')
-
-        const fetchAdmins = async () => {
-            try {
-                const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/admins/profile`, {
-                    headers: {
-                        Authorization: `Bearer ${adminToken}`,
-                    },
-                });
-                const data = await res.json();
-                setAdmins(data); // Make sure this is the actual admin object or array
-            } catch (err) {
-                console.error(err);
-            }
-        };
-
-        fetchAdmins();
-    }, []);
+    const onClickSignout = () => {
+        localStorage.clear();
+        window.location.reload();
+    };
 
     return (
-        <div className='bg-black fixed top-0 z-50 w-full shadow-md shadow-black/50 flex justify-between items-center px-10'>
+        <div className='bg-black fixed top-0 z-50 w-full shadow-md shadow-black/50 flex justify-between items-center sm:px-10 px-4'>
             <Link to='/'>
                 <img className='w-[90px]' src={logo} alt="" />
             </Link>
-            <div className='flex gap-3 font-medium bg-blue-500 p-3 rounded-full items-center'>
-                <FaUserCircle className='text-white text-[24px]' />
+            <div onClick={() => setOpen(!open)} className='flex gap-3 cursor-pointer font-medium bg-blue-500 p-3 sp:text-base text-sm rounded-full items-center'>
+                <FaUserCircle className='text-white sp:text-[24px] text-lg' />
                 {admins.name}
+                <IoIosArrowDown className={`${open && 'rotate-180'} transition-all duration-300 sp:text-[24px] text-lg`} />
             </div>
+
+            {open && (
+                <div onClick={onClickSignout} className='absolute cursor-pointer right-5 w-[200px] bg-white px-3 py-2 rounded-md top-[68px] shadow-sm shadow-black/50'>
+                    <p className='text-red-500 font-semibold flex items-center gap-2'>
+                        <FaSignOutAlt className='mt-1 text-lg' />
+                        Sign out
+                    </p>
+                </div>
+            )}
         </div>
     )
 }
