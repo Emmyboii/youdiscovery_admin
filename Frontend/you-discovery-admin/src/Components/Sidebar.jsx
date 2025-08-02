@@ -4,6 +4,7 @@ import { FaTimes, FaUserSecret } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { IoIosArrowBack } from "react-icons/io";
 import { useState } from "react";
+import { SiGoogleanalytics } from "react-icons/si";
 
 const Sidebar = ({ open, setOpen, admins, openSidebar, setOpenSidebar }) => {
 
@@ -59,6 +60,10 @@ const Sidebar = ({ open, setOpen, admins, openSidebar, setOpenSidebar }) => {
                         <p className={`${!open && 'hidden'}`}>View Admins</p>
                     </div>
                     {/* </Link> */}
+                    <div onClick={() => navigate('/analytics')} className={`flex hover:bg-black/10 rounded-lg ${open && 'p-2'} items-center gap-3 cursor-pointer text-[17px]`}>
+                        <SiGoogleanalytics className="text-2xl" />
+                        <p className={`${!open && 'hidden'}`}>Analytics</p>
+                    </div>
                 </div>
 
                 {adminModal && (
@@ -93,7 +98,7 @@ const Sidebar = ({ open, setOpen, admins, openSidebar, setOpenSidebar }) => {
                     </div>
                 )}
             </div>
-            
+
             <div className={`border-r border-black/50 w-[300px] transition-all duration-300 ${!openSidebar && 'w-[0px] opacity-0'} h-screen shadow-sm shadow-black/30 fixed block mp:hidden z-50 bg-white py-5`}>
                 <div className="flex items-center px-5 pb-5 justify-between">
                     <p className={`font-semibold text-2xl`}>Admin Dashboard</p>
@@ -126,6 +131,16 @@ const Sidebar = ({ open, setOpen, admins, openSidebar, setOpenSidebar }) => {
                         <p>View Admins</p>
                     </div>
                     {/* </Link> */}
+
+                    <div onClick={() => {
+                        navigate('/analytics')
+                        setOpenSidebar(!openSidebar)
+                    }}
+                        className={`flex hover:bg-black/10 rounded-lg p-2 items-center gap-3 cursor-pointer text-[17px]`}
+                    >
+                        <SiGoogleanalytics className="text-2xl" />
+                        <p className={`${!open && 'hidden'}`}>Analytics</p>
+                    </div>
                 </div>
 
                 {adminModal && (

@@ -24,8 +24,12 @@ const userSchema = new Schema({
   cohortApplied: { type: String, default: null },
   dateOfBirth: { type: Date, default: null },
   notes: { type: String, default: null },
+  country: { type: String, default: null },
+  state: { type: String, default: null },
+  city: { type: String, default: null },
+  inactiveReason: { type: String, default: null },
   certificatesEarned: { type: String, default: null },
-  gender: { type: String, default: null },
+  gender: { type: String, enum: ['male', 'female'] },
   quizAttempts: [
     { type: Schema.Types.ObjectId, ref: 'QuizAttempt' }
   ],

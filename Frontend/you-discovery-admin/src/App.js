@@ -11,6 +11,7 @@ import Students from "./Pages/Students";
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import UserDetails from "./Pages/UserDetails";
 import { IoMenuSharp } from "react-icons/io5";
+import Analytics from "./Pages/Analytics";
 
 function App() {
   const location = useLocation()
@@ -63,7 +64,7 @@ function App() {
   }, [openSidebar])
 
   return (
-    <div className={`w-full`}>
+    <div className={`w-full overflow-hidden`}>
       {!hideSidebar && (
         <Navbar admins={admins} />
       )}
@@ -83,6 +84,7 @@ function App() {
               <Route path="/students/:id" element={<UserDetails />} />
               <Route path="/admin" element={<Admins />} />
               <Route path="/mail" element={<Mail />} />
+              <Route path="/analytics" element={<Analytics />} />
             </Route>
 
             <Route path="/auth/*" element={<PublicRoute><Authentication /></PublicRoute>} />

@@ -286,8 +286,8 @@ const UserDetails = () => {
                             </div>
                         </div>
                         <div className='flex sh:flex-row flex-col justify-between sh:gap-2 gap-8 sh:items-start items-center w-full'>
-                            <div className='flex sp:gap-2 gap-5 sp:flex-row flex-col items-center sh:items-start w-full justify-between'>
-                                <div className='flex flex-col gap-[33px] items-center sh:items-start w-full'>
+                            <div className='flex sp:gap-2 gap-5 sp:flex-row flex-col items-start w-full justify-between'>
+                                <div className='flex flex-col gap-[40px] items-center sh:items-start w-full'>
                                     <div className='flex flex-col gap-3'>
                                         <p className='text-xs md:text-[14px] text-center sh:text-start font-medium text-[#25252580]'>First Name</p>
                                         <input
@@ -363,8 +363,24 @@ const UserDetails = () => {
                                             </p>
                                         )}
                                     </div>
+                                    <div className='flex flex-col gap-3'>
+                                        <p className='text-xs md:text-[14px] text-center sh:text-start font-medium text-[#25252580]'>City</p>
+                                        {edit ? (
+                                            <input
+                                                type="text"
+                                                value={students?.city}
+                                                onChange={handleChange}
+                                                className={`text-[14px] md:text-[16px] text-center sh:text-start font-medium text-[#252525] outline-none ${edit && 'outline-black/50 sh:w-[70%] px-2 py-1 rounded'}`}
+                                                name="city"
+                                            />
+                                        ) : (
+                                            <p className="text-[14px] md:text-[16px] text-center sh:text-start font-medium text-[#252525]">
+                                                {students.city ? students.city : 'Not Provided'}
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
-                                <div className='flex flex-col gap-[33px] items-center sh:items-start w-full'>
+                                <div className='flex flex-col gap-[40px] items-center sh:items-start w-full'>
                                     <div className='flex flex-col gap-3'>
                                         <p className='text-xs md:text-[14px] text-center sh:text-start font-medium text-[#25252580]'>Last Name</p>
                                         <input
@@ -408,10 +424,26 @@ const UserDetails = () => {
                                             readOnly={!edit}
                                         />
                                     </div>
+                                    <div className='flex flex-col gap-3'>
+                                        <p className='text-xs md:text-[14px] text-center sh:text-start font-medium text-[#25252580]'>Country</p>
+                                        {edit ? (
+                                            <input
+                                                type="text"
+                                                value={students?.country}
+                                                onChange={handleChange}
+                                                className={`text-[14px] md:text-[16px] text-center sh:text-start font-medium text-[#252525] outline-none ${edit && 'outline-black/50 sh:w-[70%] px-2 py-1 rounded'}`}
+                                                name="country"
+                                            />
+                                        ) : (
+                                            <p className="text-[14px] md:text-[16px] text-center sh:text-start font-medium text-[#252525]">
+                                                {students.country ? students.country : 'Not Provided'}
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                             <div className='flex gap-2 sh:w-1/2 w-full'>
-                                <div className='flex flex-col gap-[33px] items-center sh:items-start w-full'>
+                                <div className='flex flex-col gap-[40px] items-center sh:items-start w-full'>
                                     <div className='flex flex-col gap-3'>
                                         <p className='text-xs md:text-[14px] text-center sh:text-start font-medium text-[#25252580]'>Cohort</p>
                                         {edit ? (
@@ -451,6 +483,22 @@ const UserDetails = () => {
                                         ) : (
                                             <p className="text-[14px] md:text-[16px] text-center sh:text-start font-medium text-[#252525]">
                                                 {students.certificatesEarned ? students.certificatesEarned : 'No Cerificates yet'}
+                                            </p>
+                                        )}
+                                    </div>
+                                    <div className='flex flex-col gap-3'>
+                                        <p className='text-xs md:text-[14px] text-center sh:text-start font-medium text-[#25252580]'>State</p>
+                                        {edit ? (
+                                            <input
+                                                type="text"
+                                                value={students?.state}
+                                                onChange={handleChange}
+                                                className={`text-[14px] md:text-[16px] text-center sh:text-start font-medium text-[#252525] outline-none ${edit && 'outline-black/50 sh:w-[70%] px-2 py-1 rounded'}`}
+                                                name="state"
+                                            />
+                                        ) : (
+                                            <p className="text-[14px] md:text-[16px] text-center sh:text-start font-medium text-[#252525]">
+                                                {students.state ? students.state : 'Not Provided'}
                                             </p>
                                         )}
                                     </div>
@@ -494,14 +542,14 @@ const UserDetails = () => {
                             <p className='text-xs md:text-[14px] text-center sh:text-start font-medium text-[#25252580]'>Comment</p>
                             {edit ? (
                                 <textarea
-                                    value={students?.note}
+                                    value={students?.notes}
                                     onChange={handleChange}
                                     className={`text-[14px] md:text-[16px] text-center sh:text-start font-medium text-[#252525] outline-none ${edit && 'outline-black/50 w-[70%] px-2 py-1 rounded'}`}
-                                    name="note"
+                                    name="notes"
                                 />
                             ) : (
                                 <p className="text-[14px] md:text-[16px] text-center sh:text-start font-medium text-[#252525]">
-                                    {students.note ? students.note : 'No Comment'}
+                                    {students.notes ? students.notes : 'No Comment'}
                                 </p>
                             )}
                         </div>
