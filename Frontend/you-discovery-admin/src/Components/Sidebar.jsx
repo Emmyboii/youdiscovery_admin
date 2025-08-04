@@ -99,7 +99,7 @@ const Sidebar = ({ open, setOpen, admins, openSidebar, setOpenSidebar }) => {
                 )}
             </div>
 
-            <div className={`border-r border-black/50 w-[300px] transition-all duration-300 ${!openSidebar && 'w-[0px] opacity-0'} h-screen shadow-sm shadow-black/30 fixed block mp:hidden z-50 bg-white py-5`}>
+            <div className={`border-r border-black/50  transition-all duration-500 ${!openSidebar ? 'left-[-300px]' : 'w-[300px] z-40'} h-screen shadow-sm shadow-black/30 fixed block mp:hidden bg-white py-5`}>
                 <div className="flex items-center px-5 pb-5 justify-between">
                     <p className={`font-semibold text-2xl`}>Admin Dashboard</p>
                     <div className="hover:bg-black/10 rounded-lg p-1">
@@ -113,20 +113,20 @@ const Sidebar = ({ open, setOpen, admins, openSidebar, setOpenSidebar }) => {
                         navigate('/students')
                         setOpenSidebar(!openSidebar)
                     }}
-                        className={`flex hover:bg-black/10 p-2 rounded-lg items-center gap-3 cursor-pointer text-[17px]`}
+                        className={`flex hover:bg-black/10 p-2 z-0 rounded-lg items-center gap-3 cursor-pointer text-[17px]`}
                     >
                         <PiStudent className="text-3xl" />
                         <p>Students</p>
                     </div>
                     {/* </Link> */}
                     {/* <Link to='/mail'> */}
-                    <div onClick={onSendEmail} className={`flex hover:bg-black/10 rounded-lg p-2 items-center gap-3 cursor-pointer text-[17px]`}>
+                    <div onClick={onSendEmail} className={`flex hover:bg-black/10 z-0 rounded-lg p-2 items-center gap-3 cursor-pointer text-[17px]`}>
                         <FiMail className="text-2xl" />
                         <p>Send Mail</p>
                     </div>
                     {/* </Link> */}
                     {/* <Link to='/admin'> */}
-                    <div onClick={onViewAdmins} className={`flex hover:bg-black/10 rounded-lg p-2 items-center gap-3 cursor-pointer text-[17px]`}>
+                    <div onClick={onViewAdmins} className={`flex hover:bg-black/10 z-0 rounded-lg p-2 items-center gap-3 cursor-pointer text-[17px]`}>
                         <FaUserSecret className="text-2xl" />
                         <p>View Admins</p>
                     </div>
@@ -136,7 +136,7 @@ const Sidebar = ({ open, setOpen, admins, openSidebar, setOpenSidebar }) => {
                         navigate('/analytics')
                         setOpenSidebar(!openSidebar)
                     }}
-                        className={`flex hover:bg-black/10 rounded-lg p-2 items-center gap-3 cursor-pointer text-[17px]`}
+                        className={`flex hover:bg-black/10 rounded-lg p-2 z-0 items-center gap-3 cursor-pointer text-[17px]`}
                     >
                         <SiGoogleanalytics className="text-2xl" />
                         <p className={`${!open && 'hidden'}`}>Analytics</p>

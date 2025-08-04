@@ -178,57 +178,101 @@ const createUserRoutes = async () => {
 
       const groupFormat = {
         daily: { format: '%Y-%m-%d', label: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } } },
-        weekly: { format: '%Y-%U', label: { $concat: [{ $toString: { $isoWeek: '$createdAt' } }, '-', { $toString: { $year: '$createdAt' } }] } },
-        monthly: { format: '%Y-%m', label: { $dateToString: { format: '%Y-%m', date: '$createdAt' } } },
+        weekly: {
+          format: '%Y-%U',
+          label: {
+            $concat: [
+              { $toString: { $isoWeek: '$createdAt' } },
+              '-',
+              { $toString: { $year: '$createdAt' } }
+            ]
+          }
+        },
+        monthly: { format: '%Y-%m', label: { $dateToString: { format: '%Y-%m', date: '$createdAt' } } }
       }[range];
 
-      // 1. New Registrations
+      const completedGroupFormat = {
+        daily: { format: '%Y-%m-%d', label: { $dateToString: { format: '%Y-%m-%d', date: '$completedAt' } } },
+        weekly: {
+          format: '%Y-%U',
+          label: {
+            $concat: [
+              { $toString: { $isoWeek: '$completedAt' } },
+              '-',
+              { $toString: { $year: '$completedAt' } }
+            ]
+          }
+        },
+        monthly: { format: '%Y-%m', label: { $dateToString: { format: '%Y-%m', date: '$completedAt' } } }
+      }[range];
+
+      // 1. Registrations
       const registrations = await User.aggregate([
-        { $group: { _id: groupFormat.label, count: { $sum: 1 } } },
+        { $project: { createdAt: 1, label: groupFormat.label } },
+        { $group: { _id: '$label', count: { $sum: 1 } } },
         { $sort: { _id: 1 } },
         { $project: { label: '$_id', count: 1, _id: 0 } }
       ]);
 
-      // 2. Quiz & Task Completions (using QuizAttempts and Blogs)
-      const quizzes = await QuizAttempt.aggregate([
-        { $match: { passed: true } },
-        { $group: { _id: groupFormat.label, quizzes: { $sum: 1 } } },
-        { $sort: { _id: 1 } },
-        { $project: { label: '$_id', quizzes: 1, _id: 0 } }
+      // 2. Quiz Attempts - Passed
+      const passedAgg = await QuizAttempt.aggregate([
+        { $match: { isPassed: true, completedAt: { $exists: true } } },
+        { $project: { label: completedGroupFormat.label } },
+        { $group: { _id: '$label', passed: { $sum: 1 } } }
       ]);
 
-      const tasks = await Blog.aggregate([
-        { $match: { completedBy: { $exists: true, $ne: [] } } },
-        { $unwind: '$completedBy' },
-        { $group: { _id: groupFormat.label, tasks: { $sum: 1 } } },
-        { $sort: { _id: 1 } },
-        { $project: { label: '$_id', tasks: 1, _id: 0 } }
+      // 3. Quiz Attempts - Attempted
+      const attemptedAgg = await QuizAttempt.aggregate([
+        { $match: { completedAt: { $exists: true } } },
+        { $project: { label: completedGroupFormat.label } },
+        { $group: { _id: '$label', attempted: { $sum: 1 } } }
       ]);
 
-      // Merge completions by label
-      const completionsMap = new Map();
-      quizzes.forEach(item => completionsMap.set(item.label, { label: item.label, quizzes: item.quizzes, tasks: 0 }));
-      tasks.forEach(item => {
-        if (completionsMap.has(item.label)) {
-          completionsMap.get(item.label).tasks = item.tasks;
+      const completionMap = new Map();
+      attemptedAgg.forEach(item => {
+        completionMap.set(item._id, {
+          label: item._id,
+          passed: 0,
+          attempted: item.attempted
+        });
+      });
+      passedAgg.forEach(item => {
+        if (completionMap.has(item._id)) {
+          completionMap.get(item._id).passed = item.passed;
         } else {
-          completionsMap.set(item.label, { label: item.label, quizzes: 0, tasks: item.tasks });
+          completionMap.set(item._id, {
+            label: item._id,
+            passed: item.passed,
+            attempted: 0
+          });
         }
       });
-      const completions = Array.from(completionsMap.values());
+      const completions = Array.from(completionMap.values()).sort((a, b) =>
+        a.label.localeCompare(b.label)
+      );
 
-      // 3. Login Activity
+      // 4. Logins
       const logins = await User.aggregate([
         { $match: { lastLogin: { $exists: true } } },
-        { $group: { _id: groupFormat.label, logins: { $sum: 1 } } },
+        { $project: { label: groupFormat.label } },
+        { $group: { _id: '$label', logins: { $sum: 1 } } },
         { $sort: { _id: 1 } },
         { $project: { label: '$_id', logins: 1, _id: 0 } }
       ]);
 
-      // 4. Active Users Trend (assume active = login in time period)
-      const activeUsers = logins.map(entry => ({ label: entry.label, count: entry.logins }));
+      // 5. Active Users — Trend
+      const activeUsersTrend = await User.aggregate([
+        { $match: { isActive: true } },
+        { $project: { createdAt: 1, label: groupFormat.label } },
+        { $group: { _id: '$label', count: { $sum: 1 } } },
+        { $sort: { _id: 1 } },
+        { $project: { label: '$_id', count: 1, _id: 0 } }
+      ]);
 
-      // 5. Peak Period of Login
+      // 6. Active Users — Total Count
+      const activeUsersTotal = await User.countDocuments({ isActive: true });
+
+      // 7. Peak Login Period
       const hourlyActivity = await User.aggregate([
         { $match: { lastLogin: { $exists: true } } },
         { $project: { hour: { $hour: '$lastLogin' } } },
@@ -236,17 +280,21 @@ const createUserRoutes = async () => {
         { $sort: { count: -1 } },
         { $limit: 1 }
       ]);
+
       const peakHour = hourlyActivity[0]?._id;
-      let peakPeriod = 'Unknown';
-      if (peakHour !== undefined) {
-        peakPeriod = (peakHour >= 6 && peakHour <= 18) ? 'Day' : 'Night';
-      }
+      const peakPeriod =
+        peakHour === undefined
+          ? 'Unknown'
+          : peakHour >= 6 && peakHour <= 18
+            ? 'Day'
+            : 'Night';
 
       res.json({
         registrations,
         completions,
         logins,
-        activeUsers,
+        activeUsersTrend,
+        activeUsersTotal,
         peakPeriod
       });
     } catch (err) {
@@ -259,12 +307,62 @@ const createUserRoutes = async () => {
     try {
       // 1. Average Quiz Score
       const scores = await QuizAttempt.aggregate([
+        { $match: { score: { $exists: true } } },
         { $group: { _id: null, averageScore: { $avg: '$score' } } }
       ]);
       const averageQuizScore = scores[0]?.averageScore?.toFixed(2) || 0;
 
-      // 2. Average Completion Rate per Course
-      const completionStats = await Chapter.aggregate([
+      // 2. Average Completion Rate per Chapter (based on completedAt in QuizAttempt)
+      const chapterCompletions = await QuizAttempt.aggregate([
+        {
+          $match: {
+            completedAt: { $exists: true }
+          }
+        },
+        {
+          $lookup: {
+            from: 'quizzes',
+            localField: 'quiz',
+            foreignField: '_id',
+            as: 'quiz'
+          }
+        },
+        { $unwind: '$quiz' },
+        {
+          $lookup: {
+            from: 'blogs',
+            localField: 'quiz.blog',
+            foreignField: '_id',
+            as: 'blog'
+          }
+        },
+        { $unwind: '$blog' },
+        {
+          $lookup: {
+            from: 'chapters',
+            localField: 'blog.chapter',
+            foreignField: '_id',
+            as: 'chapter'
+          }
+        },
+        { $unwind: '$chapter' },
+        {
+          $group: {
+            _id: '$chapter._id',
+            completions: { $sum: 1 }
+          }
+        }
+      ]);
+
+      const totalChapters = await Chapter.countDocuments();
+      const totalCompletions = chapterCompletions.reduce((sum, ch) => sum + ch.completions, 0);
+      const avgCompletionRate = (totalChapters ? totalCompletions / totalChapters : 0).toFixed(2);
+
+      // 3. Certificates Issued
+      const certCount = await User.countDocuments({ isCertified: true });
+
+      // 4. Most Popular Course (by quiz completions)
+      const popularCourse = await Chapter.aggregate([
         {
           $lookup: {
             from: 'blogs',
@@ -275,69 +373,69 @@ const createUserRoutes = async () => {
         },
         { $unwind: '$blogs' },
         {
-          $project: {
-            chapter: '$_id',
-            blog: '$blogs._id',
-            completedBy: '$blogs.completedBy'
+          $lookup: {
+            from: 'quizzes',
+            localField: 'blogs._id',
+            foreignField: 'blog',
+            as: 'quiz'
           }
         },
-        {
-          $group: {
-            _id: '$chapter',
-            totalBlogs: { $sum: 1 },
-            totalCompletions: { $sum: { $size: { $ifNull: ['$completedBy', []] } } }
-          }
-        },
-        {
-          $project: {
-            chapter: '$_id',
-            _id: 0,
-            averageCompletionRate: { $divide: ['$totalCompletions', '$totalBlogs'] }
-          }
-        }
-      ]);
-      const avgCompletionRate = (completionStats.reduce((a, b) => a + (b.averageCompletionRate || 0), 0) / (completionStats.length || 1)).toFixed(2);
-
-      // 3. Number of Certificates Issued (assume users with isCertified = true)
-      const certCount = await User.countDocuments({ isCertified: true });
-
-      // 4. Most Popular Course/Module (by number of blogs or completions)
-      const mostPopular = await Chapter.aggregate([
+        { $unwind: '$quiz' },
         {
           $lookup: {
-            from: 'blogs',
+            from: 'quizattempts',
+            localField: 'quiz._id',
+            foreignField: 'quiz',
+            as: 'attempts'
+          }
+        },
+        {
+          $project: {
+            title: '$title',
+            totalCompletions: { $size: { $ifNull: ['$attempts', []] } }
+          }
+        },
+        { $sort: { totalCompletions: -1 } },
+        { $limit: 1 }
+      ]);
+      const mostPopularCourse = popularCourse[0]?.title || 'N/A';
+
+      // 5. Most Completed Class
+      const mostCompletedClassAgg = await Blog.aggregate([
+        {
+          $lookup: {
+            from: 'quizattempts',
             localField: '_id',
-            foreignField: 'chapter',
-            as: 'blogs'
+            foreignField: 'quiz',
+            as: 'attempts'
           }
         },
         {
           $project: {
             title: 1,
-            popularity: {
-              $sum: { $map: { input: '$blogs', as: 'b', in: { $size: { $ifNull: ['$$b.completedBy', []] } } } }
+            completions: {
+              $size: {
+                $filter: {
+                  input: '$attempts',
+                  as: 'attempt',
+                  cond: { $ifNull: ['$$attempt.completedAt', false] }
+                }
+              }
             }
-          },
-        },
-        { $sort: { popularity: -1 } },
-        { $limit: 1 }
-      ]);
-      const mostPopularCourse = mostPopular[0]?.title || 'N/A';
-
-      // 5. Most Completed Class/Quiz
-      const topBlog = await Blog.aggregate([
-        {
-          $project: {
-            title: 1,
-            completions: { $size: { $ifNull: ['$completedBy', []] } }
           }
         },
         { $sort: { completions: -1 } },
         { $limit: 1 }
       ]);
-      const mostCompletedClass = topBlog[0]?.title || 'N/A';
+      const mostCompletedClass = mostCompletedClassAgg[0]?.title || 'N/A';
 
+      // 6. Most Completed Quiz
       const topQuiz = await QuizAttempt.aggregate([
+        {
+          $match: {
+            completedAt: { $exists: true }
+          }
+        },
         {
           $group: {
             _id: '$quiz',
@@ -357,7 +455,7 @@ const createUserRoutes = async () => {
         { $unwind: '$quizInfo' },
         {
           $project: {
-            title: '$quizInfo.title',
+            title: '$quizInfo.quizTitle',
             count: 1
           }
         }
@@ -372,6 +470,7 @@ const createUserRoutes = async () => {
         mostCompletedClass,
         mostCompletedQuiz
       });
+
     } catch (err) {
       console.error('Performance metrics error:', err);
       res.status(500).json({ error: 'Server error' });
@@ -451,35 +550,60 @@ const createUserRoutes = async () => {
     }
   });
 
+  // routes/topPerformers.js
   router.get('/top-performers', authMiddleware2, requireRole(['Master Admin', 'Super Admin', 'Support Admin', 'Cohort Admin']), async (req, res) => {
     try {
-      const users = await User.find({});
-      const attempts = await QuizAttempt.find({});
+      // Top 10 by Quiz Score
+      const topByScore = await QuizAttempt.aggregate([
+        {
+          $group: {
+            _id: '$user',
+            avgScore: { $avg: '$score' },
+            attempts: { $sum: 1 }
+          }
+        },
+        {
+          $match: {
+            _id: { $ne: null }, // ensure user field exists
+            avgScore: { $gt: 0 }
+          }
+        },
+        {
+          $sort: { avgScore: -1 }
+        },
+        { $limit: 20 },
+        {
+          $lookup: {
+            from: 'users',
+            localField: '_id',
+            foreignField: '_id',
+            as: 'user'
+          }
+        },
+        { $unwind: '$user' },
+        {
+          $project: {
+            name: { $concat: ['$user.firstName', ' ', '$user.lastName'] },
+            email: '$user.email',
+            avgScore: { $round: ['$avgScore', 1] },
+            cohort: '$user.cohortApplied',
+            consistency: '$user.consistency.last30Days'
+          }
+        }
+      ]);
 
-      const performanceMap = {};
-      for (const attempt of attempts) {
-        const uid = attempt.user ? attempt.user.toString() : null;
-        if (!uid) continue;
-        if (!performanceMap[uid]) performanceMap[uid] = { scores: [], totalScore: 0 };
-        performanceMap[uid].scores.push(attempt.score);
-      }
-
-      const leaderboard = users.map(user => {
-        const perf = performanceMap[user._id.toString()] || { scores: [] };
-        const avgScore = perf.scores.length
-          ? (perf.scores.reduce((a, b) => a + b, 0) / perf.scores.length).toFixed(1)
-          : 0;
-        return {
+      // Top 10 by Consistency (optional, same as before)
+      const allUsers = await User.find({}).lean();
+      const topByConsistency = allUsers
+        .map(user => ({
           name: `${user.firstName} ${user.lastName}`,
           email: user.email,
-          avgScore: parseFloat(avgScore),
           consistency: user.consistency?.last30Days || 0,
+          avgScore: 0,
           cohort: user.cohortApplied || 'Unassigned'
-        };
-      });
-
-      const topByScore = [...leaderboard].sort((a, b) => b.avgScore - a.avgScore).slice(0, 10);
-      const topByConsistency = [...leaderboard].sort((a, b) => b.consistency - a.consistency).slice(0, 10);
+        }))
+        .sort((a, b) => b.consistency - a.consistency)
+        .slice(0, 20);
 
       res.json({ topByScore, topByConsistency });
     } catch (err) {

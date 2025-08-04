@@ -7,13 +7,13 @@ import {
 
 const COLORS = ["#6366f1", "#f59e0b", "#10b981", "#ef4444", "#3b82f6", "#8b5cf6", "#f43f5e"];
 
-const GeographicalSpread = () => {
+const GeographicalSpread = ({ loading, setLoading }) => {
     const [data, setData] = useState({
         byCountry: {},
         nigeriaByState: {},
         nigeriaByCity: {},
     });
-    const [loading, setLoading] = useState(false);
+    // const [loading, setLoading] = useState(false);
     const [selectedView, setSelectedView] = useState('country'); // 'country' | 'state' | 'city'
 
     useEffect(() => {
@@ -40,7 +40,7 @@ const GeographicalSpread = () => {
             } catch (err) {
                 console.error("Error fetching geo data:", err);
             } finally {
-                setLoading(false);
+                // setLoading(false);
             }
         };
         fetchData();

@@ -1,11 +1,13 @@
+// components/TopPerformers.jsx
 import React, { useEffect, useState } from 'react';
 
-const TopPerformers = () => {
+const TopPerformers = ({ loading, setLoading }) => {
     const [data, setData] = useState({ topByScore: [], topByConsistency: [] });
-    const [loading, setLoading] = useState(true);
+    // const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchTop = async () => {
+            setLoading(true)
             try {
                 const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/top-performers`, {
                     headers: {
@@ -17,7 +19,7 @@ const TopPerformers = () => {
             } catch (err) {
                 console.error('Error loading top performers:', err);
             } finally {
-                setLoading(false);
+                // setLoading(false);
             }
         };
 
@@ -37,7 +39,8 @@ const TopPerformers = () => {
                         <ol className="list-decimal list-inside text-sm space-y-1">
                             {data.topByScore.map((user, i) => (
                                 <li key={i}>
-                                    <span className="font-medium">{user.name}</span> ({user.email}) – Avg Score: <strong>{user.avgScore}</strong>
+                                    <span className="font-medium">{user.name}</span> ({user.email}) – Avg Score:{' '}
+                                    <strong>{user.avgScore}%</strong>
                                 </li>
                             ))}
                         </ol>
@@ -48,7 +51,8 @@ const TopPerformers = () => {
                         <ol className="list-decimal list-inside text-sm space-y-1">
                             {data.topByConsistency.map((user, i) => (
                                 <li key={i}>
-                                    <span className="font-medium">{user.name}</span> ({user.email}) – 30-Day Consistency: <strong>{user.consistency}%</strong>
+                                    <span className="font-medium">{user.name}</span> ({user.email}) – 30-Day Consistency:{' '}
+                                    <strong>{user.consistency}%</strong>
                                 </li>
                             ))}
                         </ol>

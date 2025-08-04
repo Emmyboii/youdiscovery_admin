@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 
-const DropOffTracking = () => {
+const DropOffTracking = ({ loading, setLoading }) => {
     const [dropOffData, setDropOffData] = useState(null);
-    const [loading, setLoading] = useState(true);
+    // const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchDropOffData = async () => {

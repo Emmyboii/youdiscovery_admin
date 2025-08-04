@@ -33,8 +33,8 @@ app.get('/', (req, res) => {
 });
 
 // Cron job to send queued emails every day at 9AM
-cron.schedule('0 9 * * *', () => {
-    console.log('⏰ Running email sender cron at 9AM...');
+cron.schedule('0 7 * * *', () => {
+    console.log('⏰ Running email sender cron at 7AM...');
     exec('node cron/sendQueuedAnnouncement.js', (err, stdout, stderr) => {
         if (err) {
             console.error('❌ Cron job error:', err);

@@ -5,10 +5,9 @@ import {
 
 const COLORS = ["#6366f1", "#f59e0b"]; // Blue & Yellow
 
-const GenderDistributionChart = () => {
+const GenderDistributionChart = ({ loading, setLoading }) => {
     const [cohort, setCohort] = useState('');
     const [data, setData] = useState([]);
-    const [loading, setLoading] = useState(false);
 
     const fetchGenderData = async () => {
 
@@ -39,7 +38,7 @@ const GenderDistributionChart = () => {
         } catch (err) {
             console.error("Error fetching gender distribution:", err);
         } finally {
-            setLoading(false);
+            // setLoading(false);
         }
     };
 

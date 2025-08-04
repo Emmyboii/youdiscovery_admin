@@ -10,9 +10,9 @@ const COLORS = {
   Inactive: '#f87171'  // red
 };
 
-const AgeSegmentationChart = () => {
+const AgeSegmentationChart = ({ loading, setLoading }) => {
   const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(false);
+  // const [loading, setLoading] = useState(false);
 
   const fetchData = async () => {
 
@@ -37,7 +37,7 @@ const AgeSegmentationChart = () => {
     } catch (err) {
       console.error('Error fetching age segmentation:', err);
     } finally {
-      setLoading(false);
+      // setLoading(false);
     }
   };
 

@@ -1,9 +1,9 @@
 // components/PerformanceMetricsOverview.jsx
 import React, { useEffect, useState } from 'react';
 
-const PerformanceMetricsOverview = () => {
+const PerformanceMetricsOverview = ({ loading, setLoading }) => {
     const [metrics, setMetrics] = useState(null);
-    const [loading, setLoading] = useState(false);
+    // const [loading, setLoading] = useState(false);
 
     const fetchMetrics = async () => {
         setLoading(true);
@@ -19,7 +19,7 @@ const PerformanceMetricsOverview = () => {
         } catch (err) {
             console.error('Failed to fetch metrics:', err);
         } finally {
-            setLoading(false);
+            // setLoading(false);
         }
     };
 
@@ -42,7 +42,7 @@ const PerformanceMetricsOverview = () => {
 
                     <div className="p-4 border rounded-md">
                         <p className="font-medium">✅ Avg. Completion Rate</p>
-                        <p className="text-[17px] font-bold">{metrics.avgCompletionRate}</p>
+                        <p className="text-[17px] font-bold">{metrics.avgCompletionRate}%</p>
                     </div>
 
                     <div className="p-4 border rounded-md">

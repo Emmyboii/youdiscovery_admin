@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 
-const CohortInsights = () => {
+const CohortInsights = ({ loading, setLoading }) => {
     const [data, setData] = useState(null);
-    const [loading, setLoading] = useState(true);
 
     const fetchInsights = async () => {
+        setLoading(true)
         try {
             const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/cohort-insights`, {
                 headers: {
@@ -16,7 +16,7 @@ const CohortInsights = () => {
         } catch (err) {
             console.error('Failed to fetch cohort insights:', err);
         } finally {
-            setLoading(false);
+            // setLoading(false);
         }
     };
 

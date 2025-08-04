@@ -1,3 +1,4 @@
+import { useState } from "react"
 import AgeSegmentationChart from "../Components/AgeSegmentationChart"
 import CohortInsights from "../Components/CohortInsights"
 import DropOffTracking from "../Components/DropOffTracking"
@@ -8,38 +9,41 @@ import PerformanceMetricsOverview from "../Components/PerformanceMetricsOverview
 import TopPerformers from "../Components/TopPerformers"
 
 const Analytics = () => {
+
+    const [loading, setLoading] = useState(false);
+
     return (
-        <div className="mh:px-10 px-3 py-14 flex flex-col gap-4">
+        <div className="mh:px-10 px-3 z-50 py-14 flex flex-col gap-4">
             <div className='border-[1.5px] border-[#25252533] sd:rounded-[20px] rounded-xl flex flex-col gap-[26px] sd:py-[30px] p-[20px] xl:px-[50px]'>
-                <GenderDistributionChart />
+                <GenderDistributionChart loading={loading} setLoading={setLoading} />
             </div>
 
             <div className='border-[1.5px] border-[#25252533] sd:rounded-[20px] rounded-xl flex flex-col gap-[26px] sd:py-[30px] p-[20px] xl:px-[50px]'>
-                <AgeSegmentationChart />
+                <AgeSegmentationChart loading={loading} setLoading={setLoading} />
             </div>
 
             <div className='border-[1.5px] border-[#25252533] sd:rounded-[20px] rounded-xl flex flex-col gap-[26px] sd:py-[30px] p-[20px] xl:px-[50px]'>
-                <GeographicalSpread />
+                <GeographicalSpread loading={loading} setLoading={setLoading} />
             </div>
 
             <div className='border-[1.5px] border-[#25252533] sd:rounded-[20px] rounded-xl flex flex-col gap-[26px] sd:py-[30px] p-[20px] xl:px-[50px]'>
-                <EngagementAnalysis />
+                <EngagementAnalysis loading={loading} setLoading={setLoading} />
             </div>
 
             <div className='border-[1.5px] border-[#25252533] sd:rounded-[20px] rounded-xl flex flex-col gap-[26px] sd:py-[30px] p-[20px] xl:px-[50px]'>
-                <PerformanceMetricsOverview />
+                <PerformanceMetricsOverview loading={loading} setLoading={setLoading} />
             </div>
 
             <div className='border-[1.5px] border-[#25252533] sd:rounded-[20px] rounded-xl flex flex-col gap-[26px] sd:py-[30px] p-[20px] xl:px-[50px]'>
-                <CohortInsights />
+                <CohortInsights loading={loading} setLoading={setLoading} />
             </div>
 
             <div className='border-[1.5px] border-[#25252533] sd:rounded-[20px] rounded-xl flex flex-col gap-[26px] sd:py-[30px] p-[20px] xl:px-[50px]'>
-                <TopPerformers />
+                <TopPerformers loading={loading} setLoading={setLoading} />
             </div>
 
             <div className='border-[1.5px] border-[#25252533] sd:rounded-[20px] rounded-xl flex flex-col gap-[26px] sd:py-[30px] p-[20px] xl:px-[50px]'>
-                <DropOffTracking />
+                <DropOffTracking loading={loading} setLoading={setLoading} />
             </div>
         </div>
     )
