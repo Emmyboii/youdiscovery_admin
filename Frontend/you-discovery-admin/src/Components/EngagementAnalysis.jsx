@@ -1,49 +1,49 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
     LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer, Legend,
     BarChart, Bar
 } from 'recharts';
 
-const EngagementAnalysis = ({ loading, setLoading }) => {
-    const [data, setData] = useState({
-        registrations: [],
-        completions: [],
-        logins: [],
-        activeUsersTrend: [],
-        activeUsersTotal: null,
-        peakPeriod: null
-    });
+const EngagementAnalysis = ({ loading, data }) => {
+    // const [data, setData] = useState({
+    //     registrations: [],
+    //     completions: [],
+    //     logins: [],
+    //     activeUsersTrend: [],
+    //     activeUsersTotal: null,
+    //     peakPeriod: null
+    // });
     // const [loading, setLoading] = useState(false);
     const [range, setRange] = useState('monthly'); // monthly | weekly | daily
 
-    useEffect(() => {
-        const fetchData = async () => {
-            const token = localStorage.getItem('adminToken');
-            if (!token) return;
+    // useEffect(() => {
+    //     const fetchData = async () => {
+    //         const token = localStorage.getItem('adminToken');
+    //         if (!token) return;
 
-            setLoading(true);
-            try {
-                const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/engagement-analysis?range=${range}`, {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                const result = await res.json();
-                setData(result);
-            } catch (err) {
-                console.error("Error fetching engagement data:", err);
-            } finally {
-                // setLoading(false);
-            }
-        };
-        fetchData();
-    }, [range]);
+    //         setLoading(true);
+    //         try {
+    //             const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/engagement-analysis?range=${range}`, {
+    //                 headers: {
+    //                     Authorization: `Bearer ${token}`,
+    //                     'Content-Type': 'application/json'
+    //                 }
+    //             });
+    //             const result = await res.json();
+    //             setData(result);
+    //         } catch (err) {
+    //             console.error("Error fetching engagement data:", err);
+    //         } finally {
+    //             // setLoading(false);
+    //         }
+    //     };
+    //     fetchData();
+    // }, [range]);
 
     return (
         <div className="bg-white w-full">
             <div className="flex flex-wrap justify-between items-start gap-3 mb-6">
-                <h2 className="text-2xl font-semibold text-gray-700">📊 Engagement & Activity Analysis</h2>
+                <h2 className="text-xl font-bold text-gray-700">📊 Engagement & Activity Analysis</h2>
                 <select
                     value={range}
                     onChange={(e) => setRange(e.target.value)}

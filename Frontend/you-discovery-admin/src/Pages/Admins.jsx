@@ -125,8 +125,10 @@ const Admins = () => {
 
     return (
         <div className="mk:px-10 px-3 py-14 w-full">
+
+            <p className="text-black/70 font-normal">Total Admin: {admins.length}</p>
             {/* Search & Sort */}
-            <div className="flex items-center justify-between mb-6 gap-4 flex-wrap">
+            <div className="flex items-center mt-5 justify-between mb-6 gap-4 flex-wrap">
                 <div className="relative w-full max-w-md">
                     <input
                         type="text"

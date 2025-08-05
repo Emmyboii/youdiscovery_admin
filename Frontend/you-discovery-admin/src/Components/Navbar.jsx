@@ -25,7 +25,7 @@ const Navbar = ({ admins }) => {
             </div>
 
             {open && (
-                <div onClick={onClickSignout} className='absolute cursor-pointer right-5 w-[200px] bg-white px-3 py-2 rounded-md top-[68px] shadow-sm shadow-black/50'>
+                <div onClick={onClickSignout} className='absolute cursor-pointer sm:right-14 right-5 w-[200px] bg-white px-3 py-2 rounded-md top-[68px] shadow-sm shadow-black/50'>
                     <p className='text-red-500 font-semibold flex items-center gap-2'>
                         <FaSignOutAlt className='mt-1 text-lg' />
                         Sign out

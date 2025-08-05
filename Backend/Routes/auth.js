@@ -22,7 +22,7 @@ router.post('/signup', async (req, res) => {
     const approvalToken = jwt.sign(
       { userId: admin._id },
       process.env.JWT_SECRET,
-      { expiresIn: '15m' }
+      { expiresIn: '4h' }
     );
 
     await sendEmailToMasterAdmin(name, email, admin._id, approvalToken);
@@ -40,7 +40,7 @@ router.post('/login', async (req, res) => {
 
   try {
     const admin = await Admin.findOne({ email });
-    if (!admin) return res.status(400).json({ error: 'Invalid email or password' });
+    if (!admin) return res.status(400).json({ error: 'Account with this email does not exsist' });
 
     if (!admin.isApproved)
       return res.status(403).json({ error: 'Your account is pending approval' });

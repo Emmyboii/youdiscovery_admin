@@ -658,7 +658,7 @@ const createUserRoutes = async () => {
       res.json({
         inactive14Count: inactive14.length,
         inactive30Count: inactive30.length,
-        detailed: [...inactive30, ...inactive14]
+        // detailed: [...inactive30, ...inactive14]
       });
     } catch (err) {
       console.error('Drop-off tracking error:', err);

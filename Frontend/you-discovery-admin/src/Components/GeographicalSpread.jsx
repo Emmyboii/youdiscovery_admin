@@ -1,5 +1,5 @@
 // components/GeographicalSpread.jsx
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
     BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend,
     PieChart, Pie, Cell
@@ -7,46 +7,47 @@ import {
 
 const COLORS = ["#6366f1", "#f59e0b", "#10b981", "#ef4444", "#3b82f6", "#8b5cf6", "#f43f5e"];
 
-const GeographicalSpread = ({ loading, setLoading }) => {
-    const [data, setData] = useState({
-        byCountry: {},
-        nigeriaByState: {},
-        nigeriaByCity: {},
-    });
+const GeographicalSpread = ({ loading, data }) => {
+    // const [data, setData] = useState({
+    //     byCountry: {},
+    //     nigeriaByState: {},
+    //     nigeriaByCity: {},
+    // });
     // const [loading, setLoading] = useState(false);
     const [selectedView, setSelectedView] = useState('country'); // 'country' | 'state' | 'city'
 
-    useEffect(() => {
-        const fetchData = async () => {
+    // useEffect(() => {
+    //     const fetchData = async () => {
 
-            const token = localStorage.getItem('adminToken')
-            if (!token) {
-                console.warn('No token found');
-                return;
-            }
+    //         const token = localStorage.getItem('adminToken')
+    //         if (!token) {
+    //             console.warn('No token found');
+    //             return;
+    //         }
 
-            setLoading(true);
-            try {
-                const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/geographical-distribution`, {
-                    method: 'GET',
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        Accept: 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                })
-                const result = await res.json();
-                setData(result);
-            } catch (err) {
-                console.error("Error fetching geo data:", err);
-            } finally {
-                // setLoading(false);
-            }
-        };
-        fetchData();
-    }, []);
+    //         setLoading(true);
+    //         try {
+    //             const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/geographical-distribution`, {
+    //                 method: 'GET',
+    //                 headers: {
+    //                     Authorization: `Bearer ${token}`,
+    //                     Accept: 'application/json',
+    //                     'Content-Type': 'application/json'
+    //                 },
+    //             })
+    //             const result = await res.json();
+    //             setData(result);
+    //         } catch (err) {
+    //             console.error("Error fetching geo data:", err);
+    //         } finally {
+    //             // setLoading(false);
+    //         }
+    //     };
+    //     fetchData();
+    // }, []);
 
     const formatMapToArray = (map) => {
+        if (!map || typeof map !== 'object') return [];
         return Object.entries(map).map(([name, value]) => ({ name, value }));
     };
 
@@ -91,15 +92,15 @@ const GeographicalSpread = ({ loading, setLoading }) => {
     const views = {
         country: {
             title: "User Distribution by Country",
-            data: formatMapToArray(data.byCountry),
+            data: formatMapToArray(data?.byCountry),
         },
         state: {
             title: "Nigerian User Distribution by State",
-            data: formatMapToArray(data.nigeriaByState),
+            data: formatMapToArray(data?.nigeriaByState),
         },
         city: {
             title: "Nigerian User Distribution by City",
-            data: formatMapToArray(data.nigeriaByCity),
+            data: formatMapToArray(data?.nigeriaByCity),
         },
     };
 
@@ -108,7 +109,7 @@ const GeographicalSpread = ({ loading, setLoading }) => {
     return (
         <div className="bg-white w-full">
             <div className="flex sh:flex-row flex-col sh:items-center items-start gap-3 justify-between mb-6">
-                <h2 className="sh:text-2xl text-xl font-semibold text-gray-700">📍 Geographical Spread</h2>
+                <h2 className="text-xl font-bold text-gray-700">📍 Geographical Spread</h2>
                 <select
                     value={selectedView}
                     onChange={(e) => setSelectedView(e.target.value)}

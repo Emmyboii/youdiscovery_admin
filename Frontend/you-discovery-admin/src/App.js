@@ -33,6 +33,7 @@ function App() {
 
   useEffect(() => {
     const adminToken = localStorage.getItem('adminToken')
+    if (!adminToken) return;
 
     const fetchAdmins = async () => {
       try {
@@ -64,7 +65,7 @@ function App() {
   }, [openSidebar])
 
   return (
-    <div className={`w-full overflow-hidden`}>
+    <div className={`w-full overflow-x-hidden`}>
       {!hideSidebar && (
         <Navbar admins={admins} />
       )}

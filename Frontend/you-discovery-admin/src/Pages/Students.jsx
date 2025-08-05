@@ -125,7 +125,8 @@ const Students = () => {
     return (
         <div className="sa:px-10 px-3 py-14 w-full">
             {/* 🔍 Search and Sort */}
-            <div className="flex items-center justify-between mb-6 gap-4 flex-wrap">
+            <p className="text-black/70 font-normal">Total Students: {students.length}</p>
+            <div className="flex mt-5 items-center justify-between mb-6 gap-4 flex-wrap">
                 <div className="relative w-full max-w-md">
                     <input
                         type="text"

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+// import React, { useEffect, useState } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
@@ -10,44 +10,44 @@ const COLORS = {
   Inactive: '#f87171'  // red
 };
 
-const AgeSegmentationChart = ({ loading, setLoading }) => {
-  const [data, setData] = useState([]);
-  // const [loading, setLoading] = useState(false);
+const AgeSegmentationChart = ({ loading, data }) => {
+  // const [data, setData] = useState([]);
+  // // const [loading, setLoading] = useState(false);
 
-  const fetchData = async () => {
+  // const fetchData = async () => {
 
-    const token = localStorage.getItem('adminToken')
-    if (!token) {
-      console.warn('No token found');
-      return;
-    }
+  //   const token = localStorage.getItem('adminToken')
+  //   if (!token) {
+  //     console.warn('No token found');
+  //     return;
+  //   }
 
-    setLoading(true);
-    try {
-      const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/age-segmentation`, {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: 'application/json',
-          'Content-Type': 'application/json'
-        },
-      })
-      const result = await res.json();
-      setData(result);
-    } catch (err) {
-      console.error('Error fetching age segmentation:', err);
-    } finally {
-      // setLoading(false);
-    }
-  };
+  //   setLoading(true);
+  //   try {
+  //     const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/age-segmentation`, {
+  //       method: 'GET',
+  //       headers: {
+  //         Authorization: `Bearer ${token}`,
+  //         Accept: 'application/json',
+  //         'Content-Type': 'application/json'
+  //       },
+  //     })
+  //     const result = await res.json();
+  //     setData(result);
+  //   } catch (err) {
+  //     console.error('Error fetching age segmentation:', err);
+  //   } finally {
+  //     // setLoading(false);
+  //   }
+  // };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  // useEffect(() => {
+  //   fetchData();
+  // }, []);
 
   return (
     <div className="bg-white w-full">
-      <h2 className="text-xl font-semibold text-gray-700 mb-4">📊 Age Segmentation</h2>
+      <h2 className="text-xl font-bold text-gray-700 mb-4">📊 Age Segmentation</h2>
 
       {loading ? (
         <p className="text-center text-gray-500">Loading...</p>
