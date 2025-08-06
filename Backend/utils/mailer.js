@@ -40,6 +40,13 @@ export const sendEmailToMasterAdmin = async (name, email, userId, token) => {
     return `<a href="${link}" style="display:inline-block;margin:8px 0;padding:10px 20px;background-color:#1a73e8;color:#fff;text-decoration:none;border-radius:5px;font-weight:bold;">Approve as ${role}</a>`;
   }).join('<br><br>');
 
+  const cohortInstructions = `
+    <p><strong>To approve as a <i>Partnerships/Admin for B2B/B2G</i> with a cohort assigned:</strong></p>
+    <p>Copy and Replace <code>COHORT_NUMBER</code> in the sample link below with the assigned cohort number:</p>
+    <p style="font-family: monospace; background: #f4f4f4; padding: 8px;">
+      ${backendUrl}/api/auth/approve/${userId}?role=Partnerships%2FAdmin%20for%20B2B%2FB2G&cohortAssigned=COHORT_NUMBER&token=${token}
+    </p>
+  `;
 
   const html = `
     <h2>New Admin Signup Request</h2>
@@ -47,6 +54,8 @@ export const sendEmailToMasterAdmin = async (name, email, userId, token) => {
     <p><strong>Email:</strong> ${email}</p>
     <p>Please choose a role to approve this user:</p>
     ${buttons}
+    <br><br>
+    ${cohortInstructions}
     <hr>
     <p style="font-size: 14px;"><strong>Role Descriptions:</strong></p>
     <ul>
@@ -55,7 +64,7 @@ export const sendEmailToMasterAdmin = async (name, email, userId, token) => {
       <li><strong>Academic/Admin Coordinator</strong>: Oversees completions, certifications, and test/quiz tracking.</li>
       <li><strong>Community Manager</strong>: Manages community engagement, discussions, announcements, and support chats.</li>
       <li><strong>CRM/Admin Support</strong>: Handles user complaints, tickets, FAQs, and account issues.</li>
-      <li><strong>Partnerships/Admin for B2B/B2G</strong>: Manages partner institutions, staff enrollments, and client reporting.</li>
+      <li><strong>Partnerships/Admin for B2B/B2G</strong>: Manages partner institutions, staff enrollments, and client reporting. <strong>(Requires assigned cohort)</strong></li>
       <li><strong>Finance/Billing Admin</strong>: Oversees invoices, subscriptions, discounts, and payouts.</li>
       <li><strong>Developer/System Admin</strong>: Responsible for backend performance, error logs, integrations, and security.</li>
     </ul>
