@@ -7,10 +7,17 @@ const adminSchema = new Schema({
   isApproved: { type: Boolean, default: false },
   role: {
     type: String,
-    enum: ['Master Admin', 'Super Admin', 'Support Admin', 'Mini Admin', 'Cohort Admin']
-  },
-  cohortAssigned: { type: Number, default: null } // e.g., "Cohort 2"
+    enum: [
+      'Super Admin',
+      'Analytics & Reporting Admin',
+      'Academic/Admin Coordinator',
+      'Community Manager',
+      'CRM/Admin Support',
+      'Partnerships/Admin for B2B/B2G',
+      'Finance/Billing Admin',
+      'Developer/System Admin'
+    ]
+  }
 });
 
-
-export default model('Admin', adminSchema);  // Connects to NEW_DB `admins` collection
+export default model('Admin', adminSchema);

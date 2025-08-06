@@ -24,34 +24,40 @@ const transporter = nodemailer.createTransport({
 });
 
 export const sendEmailToMasterAdmin = async (name, email, userId, token) => {
-  const roles = ['Master Admin', 'Super Admin', 'Support Admin', 'Mini Admin', 'Cohort Admin'];
+  const roles = [
+    'Super Admin',
+    'Analytics & Reporting Admin',
+    'Academic/Admin Coordinator',
+    'Community Manager',
+    'CRM/Admin Support',
+    'Partnerships/Admin for B2B/B2G',
+    'Finance/Billing Admin',
+    'Developer/System Admin'
+  ];
 
   const buttons = roles.map(role => {
-    const link = `${backendUrl}/api/auth/approve/${userId}?role=${encodeURIComponent(role)}&token=${token}`;
+    const link = `${backendUrl}/api/auth/redirect/approve/${userId}/${encodeURIComponent(role)}/${token}`;
     return `<a href="${link}" style="display:inline-block;margin:8px 0;padding:10px 20px;background-color:#1a73e8;color:#fff;text-decoration:none;border-radius:5px;font-weight:bold;">Approve as ${role}</a>`;
-  }).join('<br>');
+  }).join('<br><br>');
 
-  const cohortInstructions = `
-    <p><strong>To approve as a Cohort Admin:</strong></p>
-    <p>Replace <code>COHORT_NUMBER</code> with the cohort number:</p>
-    <p style="font-family: monospace; background: #f4f4f4; padding: 8px;">
-      ${backendUrl}/api/auth/approve/${userId}?role=Cohort%20Admin&cohortAssigned=COHORT_NUMBER&token=${token}
-    </p>
-  `;
 
   const html = `
     <h2>New Admin Signup Request</h2>
     <p><strong>Name:</strong> ${name}</p>
     <p><strong>Email:</strong> ${email}</p>
     <p>Please choose a role to approve this user:</p>
-    ${buttons}<br><br>${cohortInstructions}<hr>
+    ${buttons}
+    <hr>
     <p style="font-size: 14px;"><strong>Role Descriptions:</strong></p>
     <ul>
-      <li><strong>Master Admin</strong>: Full control over system and admins.</li>
-      <li><strong>Super Admin</strong>: Can manage users and settings.</li>
-      <li><strong>Support Admin</strong>: Handles user issues and reports.</li>
-      <li><strong>Mini Admin</strong>: Limited access to specific tools.</li>
-      <li><strong>Cohort Admin</strong>: Only manages users of assigned cohort.</li>
+      <li><strong>Super Admin</strong>: Full access to all modules and settings, including admin management, billing, and platform configs.</li>
+      <li><strong>Analytics & Reporting Admin</strong>: Access to metrics, reports, student feedback, and performance tracking.</li>
+      <li><strong>Academic/Admin Coordinator</strong>: Oversees completions, certifications, and test/quiz tracking.</li>
+      <li><strong>Community Manager</strong>: Manages community engagement, discussions, announcements, and support chats.</li>
+      <li><strong>CRM/Admin Support</strong>: Handles user complaints, tickets, FAQs, and account issues.</li>
+      <li><strong>Partnerships/Admin for B2B/B2G</strong>: Manages partner institutions, staff enrollments, and client reporting.</li>
+      <li><strong>Finance/Billing Admin</strong>: Oversees invoices, subscriptions, discounts, and payouts.</li>
+      <li><strong>Developer/System Admin</strong>: Responsible for backend performance, error logs, integrations, and security.</li>
     </ul>
   `;
 
@@ -67,11 +73,14 @@ export const sendEmailToMasterAdmin = async (name, email, userId, token) => {
 
 export const sendApprovalEmail = async (email, name, role) => {
   const descriptions = {
-    'Master Admin': 'Full access including system control and user management.',
-    'Super Admin': 'Can manage users and admins except Master Admins.',
-    'Support Admin': 'Handles user issues and support tasks.',
-    'Mini Admin': 'View-only access',
-    'Cohort Admin': 'Access only to users of their assigned cohort.'
+    'Super Admin': 'Full access to all modules and settings. Can manage admins, billing, analytics, and platform configurations.',
+    'Analytics & Reporting Admin': 'Access to user metrics, performance tracking, certificate reports, and KPIs.',
+    'Academic/Admin Coordinator': 'Oversees course completions, quiz/test results, certifications, and attendance (if integrated).',
+    'Community Manager': 'Manages forums, WhatsApp groups, announcements, and user engagement activities.',
+    'CRM/Admin Support': 'Handles user support tickets, account resets, complaints, and support analytics.',
+    'Partnerships/Admin for B2B/B2G': 'Manages partner institutions, enrollment stats, contracts, and organizational reporting.',
+    'Finance/Billing Admin': 'Oversees billing, subscriptions, scholarships, payouts, and financial dashboards.',
+    'Developer/System Admin': 'Handles backend systems, error logs, API integrations, security, and server performance.'
   };
 
   const html = `

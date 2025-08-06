@@ -75,6 +75,12 @@ router.get('/profile', async (req, res) => {
   res.json(currentUser);
 })
 
+router.get('/redirect/approve/:userId/:role/:token', (req, res) => {
+  const { userId, role, token } = req.params;
+  const redirectUrl = `${process.env.BACKEND_URL}/api/auth/approve/${userId}?role=${encodeURIComponent(role)}&token=${token}`;
+  res.redirect(302, redirectUrl);
+});
+
 // Approve Admin
 router.get('/approve/:userId', async (req, res) => {
   const { userId } = req.params;

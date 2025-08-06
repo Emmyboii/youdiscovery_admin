@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { FiSearch } from "react-icons/fi";
 
-const Students = () => {
+const Students = ({ admins }) => {
     const navigate = useNavigate()
     const [students, setStudents] = useState([]);
     const [filteredStudents, setFilteredStudents] = useState([]);
@@ -11,6 +11,8 @@ const Students = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [smScreen, setSmScreen] = useState(window.innerWidth <= 600);
     const [sortOption, setSortOption] = useState("firstName-asc");
+    const [studentModal, setStudentModal] = useState(false)
+
 
     const studentsPerPage = 40;
 
@@ -122,6 +124,14 @@ const Students = () => {
         return pages;
     };
 
+    const onViewUsers = (id) => {
+        if (admins.role !== 'Super Admin' && admins.role !== 'Academic/Admin Coordinator' && admins.role !== 'Analytics & Reporting Admin' && admins.role !== 'CRM/Admin Support' && admins.role !== 'Partnerships/Admin for B2B/B2G') {
+            setStudentModal(true)
+        } else {
+            navigate(`/students/${id}`)
+        }
+    }
+
     return (
         <div className="sa:px-10 px-3 py-14 w-full">
             {/* 🔍 Search and Sort */}
@@ -165,7 +175,10 @@ const Students = () => {
             {loading ? (
                 <p className="my-5 text-center font-medium text-lg">Fetching Students...</p>
             ) : currentStudents.length === 0 ? (
-                <p className="my-5 text-center text-gray-500">No students found.</p>
+                <div>
+                    <p className="my-5 text-center text-gray-500">No students found.</p>
+                    <p className="my-5 text-center text-gray-500">You probably don't have access to view students on this platform</p>
+                </div>
             ) : (
                 currentStudents.map((student, i) => (
                     <div
@@ -187,9 +200,7 @@ const Students = () => {
                                 day: "2-digit",
                             })}
                         </p>
-                        <Link to={`/students/${student._id}`}>
-                            <p className="text-blue-400 sh:block hidden cursor-pointer font-normal">Details</p>
-                        </Link>
+                        <p onClick={() => onViewUsers(student._id)} className="text-blue-400 sh:block hidden cursor-pointer font-normal">Details</p>
                     </div>
                 ))
             )}
@@ -256,6 +267,22 @@ const Students = () => {
                     </button>
                 </div>
             </div>
+
+            {studentModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                    <div className="bg-white p-6 rounded-lg w-full max-w-md text-center">
+                        <h2 className="text-lg font-bold mb-3 text-red-700">Insufficient Privilleges.</h2>
+                        <p>
+                            Sorry, you don't have the privillege to view student details on this platform
+                        </p>
+                        <div className="flex justify-center gap-4 mt-6">
+                            <button onClick={() => setStudentModal(false)} className="bg-blue-500 rounded-md text-white p-2">
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

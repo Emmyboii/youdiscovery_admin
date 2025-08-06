@@ -23,31 +23,60 @@ const createUserRoutes = async () => {
   });
 
   //Get each users
-  router.get('/users/:id', authMiddleware2, requireRole(['Master Admin', 'Super Admin', 'Support Admin', 'Cohort Admin']), async (req, res) => {
-    try {
-      const user = await User.findById(req.params.id);
-      if (!user) return res.status(404).json({ error: 'User not found' });
-      res.json(user);
-    } catch (err) {
-      res.status(500).json({ error: 'Failed to fetch user' });
+  router.get(
+    '/users/:id',
+    authMiddleware2,
+    requireRole([
+      'Super Admin',
+      'CRM/Admin Support',
+      'Academic/Admin Coordinator',
+      'Analytics & Reporting Admin',
+      'Partnerships/Admin for B2B/B2G'
+    ]),
+    async (req, res) => {
+      try {
+        const user = await User.findById(req.params.id);
+        if (!user) return res.status(404).json({ error: 'User not found' });
+        res.json(user);
+      } catch (err) {
+        res.status(500).json({ error: 'Failed to fetch user' });
+      }
     }
-  });
+  );
+
 
   // 🟡 Admins only: Fetch users (with role protection)
-  router.get('/users', authMiddleware2, requireRole(['Master Admin', 'Super Admin', 'Support Admin', 'Cohort Admin']), async (req, res) => {
-    try {
-      let query = {};
-      if (req.user.role === 'Cohort Admin' && req.user.cohortAssigned) {
-        query.cohortApplied = req.user.cohortAssigned;
+  router.get(
+    '/users',
+    authMiddleware2,
+    requireRole([
+      'Analytics & Reporting Admin',
+      'Super Admin',
+      'CRM/Admin Support',
+      'Academic/Admin Coordinator',
+      'Community Manager',
+      'Developer/System Admin',
+      'Partnerships/Admin for B2B/B2G'
+    ]), async (req, res) => {
+      try {
+        let query = {};
+        if (req.user.role === 'Partnerships/Admin for B2B/B2G' && req.user.cohortAssigned) {
+          query.cohortApplied = req.user.cohortAssigned;
+        }
+        const users = await User.find(query);
+        res.json(users);
+      } catch (err) {
+        res.status(500).json({ error: 'Failed to fetch users' });
       }
-      const users = await User.find(query);
-      res.json(users);
-    } catch (err) {
-      res.status(500).json({ error: 'Failed to fetch users' });
-    }
-  });
+    });
 
-  router.get('/gender-distribution', authMiddleware2, requireRole(['Master Admin', 'Super Admin', 'Support Admin', 'Cohort Admin']), async (req, res) => {
+  router.get('/gender-distribution', authMiddleware2, requireRole([
+    'Super Admin',
+    'CRM/Admin Support',
+    'Academic/Admin Coordinator',
+    'Analytics & Reporting Admin',
+    'Partnerships/Admin for B2B/B2G'
+  ]), async (req, res) => {
     try {
       const { cohort } = req.query;
 
@@ -75,7 +104,13 @@ const createUserRoutes = async () => {
     }
   });
 
-  router.get('/age-segmentation', authMiddleware2, requireRole(['Master Admin', 'Super Admin', 'Support Admin', 'Cohort Admin']), async (req, res) => {
+  router.get('/age-segmentation', authMiddleware2, requireRole([
+    'Super Admin',
+    'CRM/Admin Support',
+    'Academic/Admin Coordinator',
+    'Analytics & Reporting Admin',
+    'Partnerships/Admin for B2B/B2G'
+  ]), async (req, res) => {
     try {
       const users = await User.find({ dateOfBirth: { $exists: true } });
 
@@ -138,7 +173,13 @@ const createUserRoutes = async () => {
   });
 
   // In routes/users.js
-  router.get('/geographical-distribution', authMiddleware2, requireRole(['Master Admin', 'Super Admin', 'Support Admin', 'Cohort Admin']), async (req, res) => {
+  router.get('/geographical-distribution', authMiddleware2, requireRole([
+    'Super Admin',
+    'CRM/Admin Support',
+    'Academic/Admin Coordinator',
+    'Analytics & Reporting Admin',
+    'Partnerships/Admin for B2B/B2G'
+  ]), async (req, res) => {
     try {
       const users = await User.find({});
 
@@ -172,7 +213,13 @@ const createUserRoutes = async () => {
     }
   });
 
-  router.get('/engagement-analysis', authMiddleware2, requireRole(['Master Admin', 'Super Admin', 'Support Admin', 'Cohort Admin']), async (req, res) => {
+  router.get('/engagement-analysis', authMiddleware2, requireRole([
+    'Super Admin',
+    'CRM/Admin Support',
+    'Academic/Admin Coordinator',
+    'Analytics & Reporting Admin',
+    'Partnerships/Admin for B2B/B2G'
+  ]), async (req, res) => {
     try {
       const { range = 'monthly' } = req.query;
 
@@ -303,7 +350,13 @@ const createUserRoutes = async () => {
     }
   });
 
-  router.get('/performance-metrics', authMiddleware2, requireRole(['Master Admin', 'Super Admin', 'Support Admin', 'Cohort Admin']), async (req, res) => {
+  router.get('/performance-metrics', authMiddleware2, requireRole([
+    'Super Admin',
+    'CRM/Admin Support',
+    'Academic/Admin Coordinator',
+    'Analytics & Reporting Admin',
+    'Partnerships/Admin for B2B/B2G'
+  ]), async (req, res) => {
     try {
       // 1. Average Quiz Score
       const scores = await QuizAttempt.aggregate([
@@ -477,7 +530,13 @@ const createUserRoutes = async () => {
     }
   });
 
-  router.get('/cohort-insights', authMiddleware2, requireRole(['Master Admin', 'Super Admin', 'Support Admin', 'Cohort Admin']), async (req, res) => {
+  router.get('/cohort-insights', authMiddleware2, requireRole([
+    'Super Admin',
+    'CRM/Admin Support',
+    'Academic/Admin Coordinator',
+    'Analytics & Reporting Admin',
+    'Partnerships/Admin for B2B/B2G'
+  ]), async (req, res) => {
     try {
       const users = await User.find({ cohortApplied: { $exists: true, $ne: null } });
 
@@ -551,7 +610,13 @@ const createUserRoutes = async () => {
   });
 
   // routes/topPerformers.js
-  router.get('/top-performers', authMiddleware2, requireRole(['Master Admin', 'Super Admin', 'Support Admin', 'Cohort Admin']), async (req, res) => {
+  router.get('/top-performers', authMiddleware2, requireRole([
+    'Super Admin',
+    'CRM/Admin Support',
+    'Academic/Admin Coordinator',
+    'Analytics & Reporting Admin',
+    'Partnerships/Admin for B2B/B2G'
+  ]), async (req, res) => {
     try {
       // Top 10 by Quiz Score
       const topByScore = await QuizAttempt.aggregate([
@@ -612,7 +677,13 @@ const createUserRoutes = async () => {
     }
   });
 
-  router.get('/drop-off-tracking', authMiddleware2, requireRole(['Master Admin', 'Super Admin', 'Support Admin', 'Cohort Admin']), async (req, res) => {
+  router.get('/drop-off-tracking', authMiddleware2, requireRole([
+    'Super Admin',
+    'CRM/Admin Support',
+    'Academic/Admin Coordinator',
+    'Analytics & Reporting Admin',
+    'Partnerships/Admin for B2B/B2G'
+  ]), async (req, res) => {
     try {
       const users = await User.find({});
 

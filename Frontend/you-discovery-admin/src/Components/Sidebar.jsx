@@ -14,7 +14,7 @@ const Sidebar = ({ open, setOpen, admins, openSidebar, setOpenSidebar }) => {
     const [emailModal, setEmailModal] = useState(false)
 
     const onViewAdmins = () => {
-        if (admins.role !== 'Master Admin') {
+        if (admins.role !== 'Master Admin' && admins.role !== 'Developer/System Admin') {
             setAdminModal(true)
         } else {
             navigate('/admin')
@@ -23,7 +23,7 @@ const Sidebar = ({ open, setOpen, admins, openSidebar, setOpenSidebar }) => {
     }
 
     const onSendEmail = () => {
-        if (admins.role !== 'Master Admin' && admins.role !== 'Super Admin') {
+        if (admins.role !== 'Community Manager' && admins.role !== 'CRM/Admin Support' && admins.role !== 'Super Admin') {
             setEmailModal(true)
         } else {
             navigate('/mail')

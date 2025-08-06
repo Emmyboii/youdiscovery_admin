@@ -81,7 +81,7 @@ function App() {
           <Routes>
 
             <Route element={<ProtectedRoutes />}>
-              <Route path="/students" element={<Students />} />
+              <Route path="/students" element={<Students admins={admins} />} />
               <Route path="/students/:id" element={<UserDetails />} />
               <Route path="/admin" element={<Admins />} />
               <Route path="/mail" element={<Mail />} />
