@@ -239,7 +239,7 @@ const UserDetails = () => {
             {loading ? (
                 <p className="my-5 text-center font-medium text-lg">Fetching Student details...</p>
             ) : (
-                <div className='flex flex-col gap-4 mh:px-10 px-3 py-14'>
+                <div className='flex flex-col gap-4 overflow-y-auto mh:px-10 px-3 py-14'>
                     {modal && (
                         <div className={`${status.type === 'error' ? 'bg-red-500' : 'bg-green-500'} text-white fixed top-[80px] z-50 right p-3 rounded-md flex items-center text-center justify-between`}>
                             <p className='text-[16px] 3xl:text-[22px] font-bold'>

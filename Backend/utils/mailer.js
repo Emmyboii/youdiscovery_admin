@@ -77,7 +77,7 @@ export const sendEmailToMasterAdmin = async (name, email, userId, token) => {
     html,
   });
 
-  console.log(`✅ Approval email sent to Master Admin for ${email}`);
+  console.log(`✅ Approval email sent to Super Admin for ${email}`);
 };
 
 export const sendApprovalEmail = async (email, name, role) => {

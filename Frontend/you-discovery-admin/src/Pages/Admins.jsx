@@ -215,13 +215,16 @@ const Admins = () => {
                                 className="border rounded p-2"
                             >
                                 <option value="">Select Role</option>
-                                <option value="Master Admin">Master Admin</option>
                                 <option value="Super Admin">Super Admin</option>
-                                <option value="SupportAdmin">Support Admin</option>
-                                <option value="Mini Admin">Mini Admin</option>
-                                <option value="Cohort Admin">Cohort Admin</option>
+                                <option value="Analytics & Reporting Admin">Analytics & Reporting Admin</option>
+                                <option value="Academic/Admin Coordinator">Academic/Admin Coordinator</option>
+                                <option value="Community Manager">Community Manager</option>
+                                <option value="CRM/Admin Support">CRM/Admin Support</option>
+                                <option value="Partnerships/Admin for B2B/B2G">Partnerships/Admin for B2B/B2G</option>
+                                <option value="Finance/Billing Admin">Finance/Billing Admin</option>
+                                <option value="Developer/System Admin">Developer/System Admin</option>
                             </select>
-                            {editForm.role === 'Cohort Admin' && (
+                            {editForm.role === 'Partnerships/Admin for B2B/B2G' && (
                                 <input
                                     type="text"
                                     placeholder="Assign Cohort"

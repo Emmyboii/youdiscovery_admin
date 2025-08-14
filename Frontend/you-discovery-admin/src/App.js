@@ -22,17 +22,9 @@ function App() {
 
   const hideSidebar = location.pathname.startsWith('/auth') || location.pathname === '/404';
 
-  useEffect(() => {
-    const timestamp = localStorage.getItem('tokenTimestamp');
-    const now = Date.now();
-    const TWO_DAYS = 2 * 24 * 60 * 60 * 1000;
-    if (timestamp && now - Number(timestamp) > TWO_DAYS) {
-      localStorage.clear();
-    }
-  }, []);
+  const adminToken = localStorage.getItem('adminToken')
 
   useEffect(() => {
-    const adminToken = localStorage.getItem('adminToken')
     if (!adminToken) return;
 
     const fetchAdmins = async () => {
@@ -50,19 +42,29 @@ function App() {
     };
 
     fetchAdmins();
-  }, []);
+  }, [adminToken]);
 
   useEffect(() => {
-    if (openSidebar) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = 'auto';
+    const timestamp = localStorage.getItem('tokenTimestamp');
+    const now = Date.now();
+    const TWO_DAYS = 2 * 24 * 60 * 60 * 1000;
+    if (timestamp && now - Number(timestamp) > TWO_DAYS) {
+      localStorage.clear();
     }
+  }, []);
 
-    return () => {
-      document.body.style.overflow = 'auto';
-    };
-  }, [openSidebar])
+
+  // useEffect(() => {
+  //   if (openSidebar) {
+  //     document.body.style.overflow = 'hidden'
+  //   } else {
+  //     document.body.style.overflow = 'auto';
+  //   }
+
+  //   return () => {
+  //     document.body.style.overflow = 'auto';
+  //   };
+  // }, [openSidebar])
 
   return (
     <div className={`w-full overflow-x-hidden`}>

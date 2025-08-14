@@ -70,6 +70,155 @@ const createUserRoutes = async () => {
       }
     });
 
+  router.get(
+    '/class-completions',
+    authMiddleware2,
+    requireRole([
+      'Super Admin',
+      'CRM/Admin Support',
+      'Academic/Admin Coordinator',
+      'Analytics & Reporting Admin',
+      'Partnerships/Admin for B2B/B2G',
+    ]),
+    async (req, res) => {
+      try {
+        // Aggregate all completedBlogs across users.
+        // We expect user.completedBlogs to be an array of { blog: ObjectId, completedAt: Date }
+        const pipeline = [
+          // Ensure users have completedBlogs
+          { $match: { completedBlogs: { $exists: true, $ne: [] } } },
+
+          // unwind each completed entry
+          { $unwind: '$completedBlogs' },
+
+          // project the completedAt as a Date (attempt to convert string -> date if needed)
+          {
+            $project: {
+              completedAt: {
+                $cond: [
+                  { $ifNull: ['$completedBlogs.completedAt', false] },
+                  { $toDate: '$completedBlogs.completedAt' },
+                  null,
+                ],
+              },
+            },
+          },
+
+          // filter out null dates
+          { $match: { completedAt: { $type: 'date' } } },
+
+          // facet to compute multiple groupings in one pass
+          {
+            $facet: {
+              daily: [
+                {
+                  $group: {
+                    _id: {
+                      $dateToString: { format: '%Y-%m-%d', date: '$completedAt' },
+                    },
+                    count: { $sum: 1 },
+                  },
+                },
+                { $sort: { _id: 1 } },
+                { $project: { _id: 0, date: '$_id', count: 1 } },
+              ],
+
+              weekly: [
+                {
+                  $group: {
+                    _id: {
+                      year: { $isoWeekYear: '$completedAt' },
+                      week: { $isoWeek: '$completedAt' },
+                    },
+                    count: { $sum: 1 },
+                  },
+                },
+                { $sort: { '_id.year': 1, '_id.week': 1 } },
+                {
+                  $project: {
+                    _id: 0,
+                    week: {
+                      $concat: [
+                        { $toString: '$_id.year' },
+                        '-W',
+                        { $toString: '$_id.week' },
+                      ],
+                    },
+                    count: 1,
+                  },
+                },
+              ],
+
+              monthly: [
+                {
+                  $group: {
+                    _id: {
+                      $dateToString: { format: '%Y-%m', date: '$completedAt' },
+                    },
+                    count: { $sum: 1 },
+                  },
+                },
+                { $sort: { _id: 1 } },
+                { $project: { _id: 0, month: '$_id', count: 1 } },
+              ],
+
+              hourly: [
+                {
+                  $group: {
+                    _id: { hour: { $hour: '$completedAt' } },
+                    count: { $sum: 1 },
+                  },
+                },
+                { $sort: { '_id.hour': 1 } },
+                { $project: { _id: 0, hour: '$_id.hour', count: 1 } },
+              ],
+            },
+          },
+        ];
+
+        const [aggResult] = await User.aggregate(pipeline).allowDiskUse(true);
+
+        // If no results (no completed items), return empty shapes
+        const daily = aggResult?.daily || [];
+        const weekly = aggResult?.weekly || [];
+        const monthly = aggResult?.monthly || [];
+        const hourlyAgg = aggResult?.hourly || [];
+
+        // Build hourlyCounts array having 0..23 entries (fill missing hours with count 0)
+        const hourlyCounts = Array.from({ length: 24 }, (_, h) => {
+          const found = hourlyAgg.find((x) => x.hour === h);
+          return { hour: h, count: found ? found.count : 0 };
+        });
+
+        // compute daytime/nighttime counts
+        // define daytime as hours 6..17 (6:00 - 17:59), night as 18..5
+        const daytimeCount = hourlyCounts
+          .filter((h) => h.hour >= 6 && h.hour < 18)
+          .reduce((s, x) => s + x.count, 0);
+        const nighttimeCount = hourlyCounts
+          .filter((h) => h.hour < 6 || h.hour >= 18)
+          .reduce((s, x) => s + x.count, 0);
+
+        const peakTime = daytimeCount >= nighttimeCount ? 'Day' : 'Night';
+
+        return res.json({
+          daily,
+          weekly,
+          monthly,
+          peakTime,
+          dayCount: daytimeCount,
+          nightCount: nighttimeCount,
+          hourlyCounts,
+          daytimeCount,
+          nighttimeCount,
+        });
+      } catch (err) {
+        console.error('class-completions error:', err);
+        return res.status(500).json({ error: 'Server error' });
+      }
+    }
+  );
+
   router.get('/gender-distribution', authMiddleware2, requireRole([
     'Super Admin',
     'CRM/Admin Support',
@@ -739,7 +888,15 @@ const createUserRoutes = async () => {
 
 
   // 🟡 Admins only: Update user in both DBs
-  router.put('/users/:id', authMiddleware2, requireRole(['Master Admin', 'Super Admin', 'Support Admin']), async (req, res) => {
+  router.put('/users/:id', authMiddleware2, requireRole([
+    'Analytics & Reporting Admin',
+    'Super Admin',
+    'CRM/Admin Support',
+    'Academic/Admin Coordinator',
+    'Community Manager',
+    'Developer/System Admin',
+    'Partnerships/Admin for B2B/B2G'
+  ]), async (req, res) => {
     try {
       const updated = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
       res.json(updated);
@@ -748,8 +905,15 @@ const createUserRoutes = async () => {
     }
   });
 
-  // 🔴 Master Admin only: Delete user from both DBs
-  router.delete('/users/:id', authMiddleware2, requireRole(['Master Admin', 'Super Admin']), async (req, res) => {
+  router.delete('/users/:id', authMiddleware2, requireRole([
+    'Analytics & Reporting Admin',
+    'Super Admin',
+    'CRM/Admin Support',
+    'Academic/Admin Coordinator',
+    'Community Manager',
+    'Developer/System Admin',
+    'Partnerships/Admin for B2B/B2G'
+  ]), async (req, res) => {
     try {
       await User.findByIdAndDelete(req.params.id);
       res.sendStatus(204);

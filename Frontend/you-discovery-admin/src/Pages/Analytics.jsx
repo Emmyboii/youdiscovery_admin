@@ -21,7 +21,8 @@ const Analytics = () => {
         performance: [],
         cohort: [],
         topPerformers: [],
-        dropOff: []
+        dropOff: [],
+        classActivities: []
     });
 
     const fetchAllData = async () => {
@@ -37,7 +38,8 @@ const Analytics = () => {
                 performanceRes,
                 cohortRes,
                 topRes,
-                dropOffRes
+                dropOffRes,
+                classActRes
             ] = await Promise.all([
                 fetch(`${process.env.REACT_APP_BACKEND_URL}/api/gender-distribution?cohort=`, {
                     method: 'GET',
@@ -70,11 +72,15 @@ const Analytics = () => {
                 fetch(`${process.env.REACT_APP_BACKEND_URL}/api/drop-off-tracking`, {
                     method: 'GET',
                     headers: { Authorization: `Bearer ${token}` }
+                }),
+                fetch(`${process.env.REACT_APP_BACKEND_URL}/api/class-completions`, {
+                    method: 'GET',
+                    headers: { Authorization: `Bearer ${token}` }
                 })
             ]);
 
             const [
-                gender, age, geography, engagement, performance, cohort, topPerformers, dropOff
+                gender, age, geography, engagement, performance, cohort, topPerformers, dropOff, classActivities
             ] = await Promise.all([
                 genderRes.json(),
                 ageRes.json(),
@@ -83,7 +89,8 @@ const Analytics = () => {
                 performanceRes.json(),
                 cohortRes.json(),
                 topRes.json(),
-                dropOffRes.json()
+                dropOffRes.json(),
+                classActRes.json()
             ]);
 
             setAllData({
@@ -94,7 +101,8 @@ const Analytics = () => {
                 performance,
                 cohort,
                 topPerformers,
-                dropOff
+                dropOff,
+                classActivities
             });
         } catch (err) {
             console.error("Error loading all analytics data:", err);
@@ -109,7 +117,7 @@ const Analytics = () => {
 
 
     return (
-        <div className="mh:px-10 relative px-3 py-20 flex flex-col gap-6">
+        <div className="mh:px-10 relative px-3 py-20 flex overflow-y-auto flex-col gap-6">
             <div className='border-[1.5px] border-[#25252533] sd:rounded-[20px] rounded-xl flex flex-col gap-[26px] sd:py-[30px] p-[20px] xl:px-[50px]'>
                 <GenderDistributionChart data={allData.gender} loading={loading} setLoading={setLoading} />
             </div>
@@ -123,7 +131,7 @@ const Analytics = () => {
             </div>
 
             <div className='border-[1.5px] border-[#25252533] sd:rounded-[20px] rounded-xl flex flex-col gap-[26px] sd:py-[30px] p-[20px] xl:px-[50px]'>
-                <EngagementAnalysis data={allData.engagement} loading={loading} setLoading={setLoading} />
+                <EngagementAnalysis data2={allData.classActivities} data={allData.engagement} loading={loading} setLoading={setLoading} />
             </div>
 
             <div className='border-[1.5px] border-[#25252533] sd:rounded-[20px] rounded-xl flex flex-col gap-[26px] sd:py-[30px] p-[20px] xl:px-[50px]'>

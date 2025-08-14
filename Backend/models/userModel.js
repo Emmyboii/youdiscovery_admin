@@ -23,7 +23,7 @@ const userSchema = new Schema({
   hasSubmittedForm: { type: Boolean, default: false },
   cohortApplied: { type: String, default: null },
   dateOfBirth: { type: Date, default: null },
-  lastLogin: { type: Date, default: null },
+  // lastLogin: { type: Date, default: null },
   notes: { type: String, default: null },
   country: { type: String, default: null },
   state: { type: String, default: null },

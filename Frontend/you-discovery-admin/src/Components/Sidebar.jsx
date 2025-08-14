@@ -12,12 +12,22 @@ const Sidebar = ({ open, setOpen, admins, openSidebar, setOpenSidebar }) => {
 
     const [adminModal, setAdminModal] = useState(false)
     const [emailModal, setEmailModal] = useState(false)
+    const [analyticsModal, setAnalyticsModal] = useState(false)
 
     const onViewAdmins = () => {
-        if (admins.role !== 'Master Admin' && admins.role !== 'Developer/System Admin') {
+        if (admins.role !== 'Super Admin' && admins.role !== 'Developer/System Admin') {
             setAdminModal(true)
         } else {
             navigate('/admin')
+            setOpenSidebar(!openSidebar)
+        }
+    }
+
+     const onViewAnalytics = () => {
+        if (admins.role === 'Developer/System Admin' && admins.role === 'Finance/Billing Admin') {
+            setAdminModal(true)
+        } else {
+            navigate('/analytics')
             setOpenSidebar(!openSidebar)
         }
     }
@@ -60,7 +70,7 @@ const Sidebar = ({ open, setOpen, admins, openSidebar, setOpenSidebar }) => {
                         <p className={`${!open && 'hidden'}`}>View Admins</p>
                     </div>
                     {/* </Link> */}
-                    <div onClick={() => navigate('/analytics')} className={`flex hover:bg-black/10 rounded-lg ${open && 'p-2'} items-center gap-3 cursor-pointer text-[17px]`}>
+                    <div onClick={onViewAnalytics} className={`flex hover:bg-black/10 rounded-lg ${open && 'p-2'} items-center gap-3 cursor-pointer text-[17px]`}>
                         <SiGoogleanalytics className="text-2xl" />
                         <p className={`${!open && 'hidden'}`}>Analytics</p>
                     </div>
@@ -132,10 +142,7 @@ const Sidebar = ({ open, setOpen, admins, openSidebar, setOpenSidebar }) => {
                     </div>
                     {/* </Link> */}
 
-                    <div onClick={() => {
-                        navigate('/analytics')
-                        setOpenSidebar(!openSidebar)
-                    }}
+                    <div onClick={onViewAnalytics}
                         className={`flex hover:bg-black/10 rounded-lg p-2 z-0 items-center gap-3 cursor-pointer text-[17px]`}
                     >
                         <SiGoogleanalytics className="text-2xl" />
@@ -168,6 +175,22 @@ const Sidebar = ({ open, setOpen, admins, openSidebar, setOpenSidebar }) => {
                             </p>
                             <div className="flex justify-center gap-4 mt-6">
                                 <button onClick={() => setEmailModal(false)} className="bg-blue-500 rounded-md text-white p-2">
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                 {analyticsModal && (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                        <div className="bg-white p-6 rounded-lg w-full max-w-md text-center">
+                            <h2 className="text-lg font-bold mb-3 text-red-700">Insufficient Privilleges.</h2>
+                            <p>
+                                Sorry, you don't have the privillege to view the analytics of this platform
+                            </p>
+                            <div className="flex justify-center gap-4 mt-6">
+                                <button onClick={() => setAnalyticsModal(false)} className="bg-blue-500 rounded-md text-white p-2">
                                     Close
                                 </button>
                             </div>
