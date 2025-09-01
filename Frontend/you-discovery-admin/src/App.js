@@ -78,7 +78,9 @@ function App() {
         {openSidebar && (
           <div onClick={() => setOpenSidebar(!openSidebar)} className="absolute cursor-pointer w-full mp:hidden block h-screen z-30 bg-black/30"></div>
         )}
-        <IoMenuSharp onClick={() => setOpenSidebar(!openSidebar)} className={`text-4xl z-50 ${openSidebar && 'hidden'} hover:bg-black/10 rounded-lg p-1 mp:hidden block cursor-pointer absolute sm:left-5 left-2 top-[91px]`} />
+        {!hideSidebar && (
+          <IoMenuSharp onClick={() => setOpenSidebar(!openSidebar)} className={`text-4xl z-50 ${openSidebar && 'hidden'} hover:bg-black/10 rounded-lg p-1 mp:hidden block cursor-pointer absolute sm:left-5 left-2 top-[91px]`} />
+        )}
         <div className={`w-full ${!hideSidebar && `mp:ml-[300px] ${!open && 'ml-[70px]'}`}`}>
           <Routes>
 
