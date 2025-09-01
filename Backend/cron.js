@@ -1,6 +1,6 @@
 // cron.js
 import cron from 'node-cron';
-import User from './Models/userModel.js';
+import User from './models/userModel.js';
 import { sendAnnouncementToAll } from './utils/mailer.js'; // Your updated function
 import dotenv from 'dotenv';
 dotenv.config();

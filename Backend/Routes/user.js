@@ -1,7 +1,7 @@
 // routes/users.js
 import { Router } from 'express';
 import mongoose from 'mongoose';
-import User from '../Models/userModel.js';
+import User from '../models/userModel.js';
 import { authMiddleware2, requireRole } from '../middleware/auth.js';
 
 const createUserRoutes = async () => {

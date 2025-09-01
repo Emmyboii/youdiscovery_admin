@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { authMiddleware2, requireRole } from '../middleware/auth.js';
-import User from '../Models/userModel.js';
+import User from '../models/userModel.js';
 import dotenv from 'dotenv';
 import AnnouncementLog from '../models/AnnouncementLog.js';
 import { sendFirstBatchImmediately } from '../utils/sendNow.js';

@@ -1,6 +1,6 @@
 // birthdayNotifier.js
 import cron from 'node-cron';
-import User from './Models/userModel.js';
+import User from './models/userModel.js';
 import { sendBirthdayEmail } from './utils/mailer.js'; // you'd define this
 
 cron.schedule('0 8 * * *', async () => {

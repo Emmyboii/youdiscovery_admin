@@ -1,9 +1,9 @@
 import { Router } from 'express';
-import User from '../Models/userModel.js';
+import User from '../models/userModel.js';
 import mongoose from 'mongoose';
-// import Blog from '../Models/blogModel.js';
-// import Chapter from '../Models/chapterModel.js';
-// import Group from '../Models/groupModel.js';
+// import Blog from '../models/blogModel.js';
+// import Chapter from '../models/chapterModel.js';
+// import Group from '../models/groupModel.js';
 
 const router = Router();
 
