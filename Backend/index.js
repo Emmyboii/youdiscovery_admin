@@ -21,7 +21,7 @@ const app = express();
 const allowedOrigins = [
     "http://localhost:3000",
     "http://localhost:3001",
-    "https://youdiscovery-admin.vercel.app/"
+    "https://youdiscovery-admin.vercel.app"
 ];
 
 app.use(cors({
@@ -38,6 +38,7 @@ app.use(cors({
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true
 }));
+
 app.use(json());
 
 // Routes that don't require async setup
