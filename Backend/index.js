@@ -17,7 +17,27 @@ import groupRoutes from './Routes/groups.js';
 config(); // Load .env
 
 const app = express();
-app.use(cors());
+
+const allowedOrigins = [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "https://youdiscovery-admin.vercel.app/"
+];
+
+app.use(cors({
+    origin: function (origin, callback) {
+        // allow requests with no origin (like mobile apps or curl)
+        if (!origin) return callback(null, true);
+
+        if (allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error("Not allowed by CORS"));
+        }
+    },
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true
+}));
 app.use(json());
 
 // Routes that don't require async setup
