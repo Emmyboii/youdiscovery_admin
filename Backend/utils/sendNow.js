@@ -20,12 +20,12 @@ export const sendFirstBatchImmediately = async (log) => {
         <div style="font-family: Arial;">
           <h2>Hello ${user.firstName},</h2>
           <p>${message}</p>
-          <p>— The YouDiscovery Team</p>
+          <p>The YOU Discovery Team</p>
         </div>
       `;
 
       return transporter.sendMail({
-        from: `"YouDiscovery Announcements" <${process.env.EMAIL_USER}>`,
+        from: `"YOU Discovery Tech" <${process.env.EMAIL_USER}>`,
         to: user.email,
         subject,
         html,

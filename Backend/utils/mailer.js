@@ -8,7 +8,7 @@ import AnnouncementLog from '../models/AnnouncementLog.js';
 const backendUrl = process.env.BACKEND_URL;
 const fromEmail = process.env.EMAIL_USER;
 const masterAdminEmail = process.env.MASTER_ADMIN_EMAIL;
-const fromName = 'YouDiscovery Admin System';
+const fromName = 'YOU Discovery Admin System';
 const fromDisplay = `"${fromName}" <${fromEmail}>`;
 
 const transporter = nodemailer.createTransport({
@@ -49,6 +49,7 @@ export const sendEmailToMasterAdmin = async (name, email, userId, token) => {
   `;
 
   const html = `
+    <img src="cid:Youdiscovery_Email" alt="YOU Discovery" style="max-width:200px;" />
     <h2>New Admin Signup Request</h2>
     <p><strong>Name:</strong> ${name}</p>
     <p><strong>Email:</strong> ${email}</p>
@@ -75,6 +76,13 @@ export const sendEmailToMasterAdmin = async (name, email, userId, token) => {
     to: masterAdminEmail,
     subject: 'New Admin Signup Request',
     html,
+    attachments: [
+      {
+        filename: 'Youdiscovery_Email.jpg',
+        path: '../assets/Youdiscovery_Email.jpg',
+        cid: 'Youdiscovery_Email'
+      }
+    ]
   });
 
   console.log(`✅ Approval email sent to Super Admin for ${email}`);
@@ -93,6 +101,7 @@ export const sendApprovalEmail = async (email, name, role) => {
   };
 
   const html = `
+    <img src="cid:Youdiscovery_Email" alt="YOU Discovery" style="max-width:200px;" />
     <h2>Congratulations, ${name}!</h2>
     <p>You’ve been approved as <strong>${role}</strong>.</p>
     <h3>Admin Role Descriptions:</h3>
@@ -107,6 +116,13 @@ export const sendApprovalEmail = async (email, name, role) => {
     to: email,
     subject: '✅ Admin Access Approved',
     html,
+    attachments: [
+      {
+        filename: 'Youdiscovery_Email.jpg',
+        path: '../assets/Youdiscovery_Email.jpg',
+        cid: 'Youdiscovery_Email'
+      }
+    ]
   });
 
   console.log(`✅ Approval confirmation sent to ${email}`);
@@ -115,6 +131,7 @@ export const sendApprovalEmail = async (email, name, role) => {
 export const sendBirthdayEmail = async (email, firstName) => {
   const html = `
   <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f9f9f9; line-height: 1.6; color: #333;">
+    <img src="cid:Youdiscovery_Email" alt="YOU Discovery" style="max-width:200px;" />
     <p>Hi <strong>${firstName}</strong>,</p>
     <p>From all of us at <strong>YOU Discovery</strong>, we’re celebrating <strong>YOU</strong> today! 🥳</p>
     <p>Your journey of growth and reinvention inspires us, and we’re honored to walk alongside <strong>YOU</strong>!</p>
@@ -146,10 +163,17 @@ export const sendBirthdayEmail = async (email, firstName) => {
 
 
   await transporter.sendMail({
-    from: `"YouDiscovery 🎓" <${fromEmail}>`,
+    from: `"YOU Discovery 🎓" <${fromEmail}>`,
     to: email,
     subject: '🎂✨ Happy Birthday YOU Discoverer! ✨🎂',
     html,
+    attachments: [
+      {
+        filename: 'Youdiscovery_Email.jpg',
+        path: '../assets/Youdiscovery_Email.jpg',
+        cid: 'Youdiscovery_Email'
+      }
+    ]
   });
 
   console.log(`✅ Birthday email sent to ${email}`);
@@ -171,17 +195,26 @@ export const sendAnnouncementToAll = async (users, subject, message, batchSize =
     const tasks = allowedBatch.map(user => {
       const html = `
         <div style="font-family: Arial, sans-serif; padding: 20px;">
+          <img src="cid:Youdiscovery_Email" alt="YOU Discovery" style="max-width:200px;" />
           <h2>Hello ${user.firstName},</h2>
           <p style="font-size: 16px; color: #333;">${message}</p>
-          <p style="font-size: 14px; color: #777;">— The YOU Discovery Team</p>
+          <p style="font-size: 14px; color: #777;">Warm regards,</p>
+          <p style="font-size: 14px; color: #777;">The YOU Discovery Team</p>
         </div>
       `;
 
       return transporter.sendMail({
-        from: `"YouDiscovery Announcements" <${fromEmail}>`,
+        from: `"YOU Discovery Tech" <${fromEmail}>`,
         to: user.email,
         subject,
         html,
+        attachments: [
+          {
+            filename: 'Youdiscovery_Email.jpg',
+            path: '../assets/Youdiscovery_Email.jpg',
+            cid: 'Youdiscovery_Email'
+          }
+        ]
       }).then(() => {
         sentCount++;
       }).catch(err => {

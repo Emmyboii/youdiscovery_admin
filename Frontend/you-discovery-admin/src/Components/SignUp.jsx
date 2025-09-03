@@ -83,7 +83,7 @@ const SignUp = () => {
         <div className="min-h-screen flex items-center justify-center bg-white">
             <div className="mx-auto my-20 relative text-center flex flex-col items-center justify-center">
                 <div className='sp:w-[441px] w-[353px] gap-5 flex flex-col items-center justify-center'>
-                    <h1 className='sp:text-[40px] text-[32px] font-medium text-[#252525]'>YouDiscovery Admins</h1>
+                    <h1 className='sp:text-[40px] text-[32px] font-medium text-[#252525]'>You Discovery Admins</h1>
                     <p className='text-[#25252580] text-[15px] mt-[-10px] font-normal'>Already have an account?
                         <Link to='/auth/login'>
                             <span className='text-[16px] ml-2 underline cursor-pointer text-[#4285F4]'>Log in</span>
