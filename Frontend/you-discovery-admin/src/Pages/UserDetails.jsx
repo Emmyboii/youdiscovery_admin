@@ -355,7 +355,7 @@ const UserDetails = () => {
                                                 value={students?.gender}
                                                 onChange={handleChange}
                                                 className={`text-[14px] md:text-[16px] text-center sh:text-start font-medium text-[#252525] outline-none ${edit && 'outline-black/50 sh:w-[70%] px-2 py-1 rounded'}`}
-                                                name="cohortApplied"
+                                                name="gender"
                                             />
                                         ) : (
                                             <p className="text-[14px] md:text-[16px] text-center sh:text-start font-medium text-[#252525]">

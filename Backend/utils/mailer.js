@@ -114,18 +114,41 @@ export const sendApprovalEmail = async (email, name, role) => {
 
 export const sendBirthdayEmail = async (email, firstName) => {
   const html = `
-    <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f9f9f9;">
-      <h2 style="color: #1a73e8;">🎉 Happy Birthday, ${firstName}!</h2>
-      <p>All of us at <strong>YouDiscovery</strong> wish you a joyful, successful, and memorable day.</p>
-      <img src="https://media.giphy.com/media/xUPGcEliCc7bETyfO8/giphy.gif" alt="Birthday" style="max-width: 400px; border-radius: 10px;" />
-      <p style="font-size: 14px; color: #777;">— The YouDiscovery Team</p>
+  <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f9f9f9; line-height: 1.6; color: #333;">
+    <p>Hi <strong>${firstName}</strong>,</p>
+    <p>From all of us at <strong>YOU Discovery</strong>, we’re celebrating <strong>YOU</strong> today! 🥳</p>
+    <p>Your journey of growth and reinvention inspires us, and we’re honored to walk alongside <strong>YOU</strong>!</p>
+    
+    <div style="background-color: #fff3cd; border: 1px solid #ffeeba; padding: 15px; border-radius: 8px; margin: 20px 0;">
+      <h3 style="margin-top: 0;">🎁 Your Birthday Gift:</h3>
+      <p style="margin: 0;">For the next 24 hours, you have the opportunity to ask <strong>YOU Discovery</strong> for your next leap — whether it’s a:</p>
+      <ul style="margin: 10px 0; padding-left: 20px;">
+        <li>Job</li>
+        <li>Internship</li>
+        <li>Mentorship</li>
+        <li>Volunteering Experience</li>
+        <li>To be Featured on our Platform(s)</li>
+        <li>Free Access to a Book</li>
+        <li>Scholarship to take a Course</li>
+      </ul>
+      <p style="margin: 0;">It’s your special day, make the most of it and ask boldly! 🌟</p>
     </div>
-  `;
+
+    <p>May this new year bring you fresh opportunities, bold leaps, and even greater victories.</p>
+    <p>Keep shining, keep growing, and keep discovering the best version of <strong>YOU</strong>.</p>
+
+    <p style="font-size: 14px; color: #777; margin-top: 30px;">
+      With love,<br/>
+      💙 The YOU Discovery Team
+    </p>
+  </div>
+`;
+
 
   await transporter.sendMail({
     from: `"YouDiscovery 🎓" <${fromEmail}>`,
     to: email,
-    subject: '🎉 Happy Birthday from YouDiscovery!',
+    subject: '🎂✨ Happy Birthday YOU Discoverer! ✨🎂',
     html,
   });
 
@@ -150,7 +173,7 @@ export const sendAnnouncementToAll = async (users, subject, message, batchSize =
         <div style="font-family: Arial, sans-serif; padding: 20px;">
           <h2>Hello ${user.firstName},</h2>
           <p style="font-size: 16px; color: #333;">${message}</p>
-          <p style="font-size: 14px; color: #777;">— The YouDiscovery Team</p>
+          <p style="font-size: 14px; color: #777;">— The YOU Discovery Team</p>
         </div>
       `;
 
