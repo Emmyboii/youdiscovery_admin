@@ -80,18 +80,22 @@ const Students = ({ admins }) => {
         const query = searchQuery.toLowerCase().trim();
 
         const filtered = students.filter((student) => {
-            const fullName = `${student.firstName || ""} ${student.lastName || ""}`.toLowerCase() || `${student.lastName || ""} ${student.firstName || ""}`.toLowerCase();
+            const fullName = `${student.firstName || ""} ${student.lastName || ""}`.toLowerCase();
+            const reverseFullName = `${student.lastName || ""} ${student.firstName || ""}`.toLowerCase();
+
             return (
                 student.firstName?.toLowerCase().includes(query) ||
                 student.lastName?.toLowerCase().includes(query) ||
                 student.email?.toLowerCase().includes(query) ||
-                fullName.includes(query)
+                fullName.includes(query) ||
+                reverseFullName.includes(query)
             );
         });
 
         setFilteredStudents(filtered);
         setCurrentPage(1);
     }, [searchQuery, students]);
+
 
 
     const sortedStudents = sortStudents(filteredStudents);
