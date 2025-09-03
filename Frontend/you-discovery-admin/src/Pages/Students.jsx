@@ -77,18 +77,22 @@ const Students = ({ admins }) => {
     }, []);
 
     useEffect(() => {
-        const query = searchQuery.toLowerCase();
+        const query = searchQuery.toLowerCase().trim();
 
-        const filtered = students.filter(
-            (student) =>
+        const filtered = students.filter((student) => {
+            const fullName = `${student.firstName || ""} ${student.lastName || ""}`.toLowerCase();
+            return (
                 student.firstName?.toLowerCase().includes(query) ||
                 student.lastName?.toLowerCase().includes(query) ||
-                student.email?.toLowerCase().includes(query)
-        );
+                student.email?.toLowerCase().includes(query) ||
+                fullName.includes(query)
+            );
+        });
 
         setFilteredStudents(filtered);
         setCurrentPage(1);
     }, [searchQuery, students]);
+
 
     const sortedStudents = sortStudents(filteredStudents);
     const totalPages = Math.ceil(sortedStudents.length / studentsPerPage);
