@@ -66,9 +66,10 @@ cron.schedule('0 7 * * *', () => {
 });
 
 // Loose schema for syncing
+// Loose schema for syncing
 const genericSchema = new mongoose.Schema({}, { strict: false });
 
-async function startTwoWaySync() {
+async function startOneWaySync() {
     try {
         const oldConn = await mongoose.createConnection(process.env.OLD_DB_URI);
         const newConn = await mongoose.createConnection(process.env.NEW_DB_URI);
@@ -92,37 +93,58 @@ async function startTwoWaySync() {
             newModels[name] = newConn.models[name] || newConn.model(name, genericSchema, collection);
         }
 
-        const syncChange = async (change, source, targetModel) => {
+        // Backfill function (Old → New)
+        const backfillCollection = async (modelName) => {
+            const oldDocs = await oldModels[modelName].find({});
+            console.log(`📦 Found ${oldDocs.length} ${modelName} docs in Old DB`);
+
+            for (const doc of oldDocs) {
+                await newModels[modelName].findByIdAndUpdate(
+                    doc._id,
+                    { ...doc.toObject(), _source: 'old' },
+                    { upsert: true }
+                );
+            }
+
+            console.log(`✅ Backfilled ${oldDocs.length} ${modelName} docs to New DB`);
+        };
+
+        // Sync function (real-time changes Old → New)
+        const syncChange = async (change, targetModel) => {
             const docId = change.documentKey._id;
             const docSource = change.fullDocument?._source;
 
-            if (docSource === source) return;
+            // Skip if change already came from Old DB
+            if (docSource === 'old') return;
 
             try {
                 if (['insert', 'update', 'replace'].includes(change.operationType)) {
                     await targetModel.findByIdAndUpdate(
                         docId,
-                        { ...change.fullDocument, _source: source },
+                        { ...change.fullDocument, _source: 'old' },
                         { upsert: true, new: true }
                     );
                 } else if (change.operationType === 'delete') {
                     await targetModel.findByIdAndDelete(docId);
                 }
 
-                console.log(`🔁 ${change.operationType.toUpperCase()} synced from ${source}`);
+                console.log(`🔁 ${change.operationType.toUpperCase()} synced from Old → New`);
             } catch (err) {
-                console.error(`❌ Sync error from ${source}:`, err.message);
+                console.error(`❌ Sync error:`, err.message);
             }
         };
 
-        // Sync all defined models: Old → New
+        // Run initial backfill for each collection
         for (const [name] of Object.entries(models)) {
-            oldModels[name].watch().on('change', (change) => syncChange(change, 'old', newModels[name]));
-            // If needed: Uncomment for New → Old syncing
-            // newModels[name].watch().on('change', (change) => syncChange(change, 'new', oldModels[name]));
+            await backfillCollection(name);
+
+            // Start watching for changes
+            oldModels[name].watch().on('change', (change) =>
+                syncChange(change, newModels[name])
+            );
         }
 
-        console.log('🚀 Two-way sync initialized');
+        console.log('🚀 One-way sync (Old → New) initialized');
     } catch (err) {
         console.error('❌ Sync initialization error:', err.message);
     }
@@ -140,7 +162,7 @@ mongoose
             console.log(`🚀 Server running on port ${PORT}`);
         });
 
-        startTwoWaySync();
+        startOneWaySync();
     })
     .catch((err) => {
         console.error('❌ Failed to connect to MongoDB:', err.message);
