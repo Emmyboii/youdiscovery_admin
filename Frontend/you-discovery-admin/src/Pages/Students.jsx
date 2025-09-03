@@ -80,7 +80,7 @@ const Students = ({ admins }) => {
         const query = searchQuery.toLowerCase().trim();
 
         const filtered = students.filter((student) => {
-            const fullName = `${student.firstName || ""} ${student.lastName || ""}`.toLowerCase();
+            const fullName = `${student.firstName || ""} ${student.lastName || ""}`.toLowerCase() || `${student.lastName || ""} ${student.firstName || ""}`.toLowerCase();
             return (
                 student.firstName?.toLowerCase().includes(query) ||
                 student.lastName?.toLowerCase().includes(query) ||
