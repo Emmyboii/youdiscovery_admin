@@ -219,45 +219,45 @@ const createUserRoutes = async () => {
     }
   );
 
-  router.get('/gender-distribution', authMiddleware2, requireRole([
-    'Super Admin',
-    'CRM/Admin Support',
-    'Academic/Admin Coordinator',
-    'Analytics & Reporting Admin',
-    'Partnerships/Admin for B2B/B2G'
-  ]), async (req, res) => {
-    try {
-      const { cohort, dateJoined } = req.query;
+  // GET /api/gender-distribution
+  router.get(
+    '/gender-distribution',
+    authMiddleware2,
+    requireRole([
+      'Super Admin',
+      'CRM/Admin Support',
+      'Academic/Admin Coordinator',
+      'Analytics & Reporting Admin',
+      'Partnerships/Admin for B2B/B2G'
+    ]),
+    async (req, res) => {
+      try {
+        const { cohort, dateJoined } = req.query;
 
-      const filter = {};
+        const filter = {};
+        if (cohort) filter.cohortApplied = cohort;
 
-      if (cohort) filter.cohortApplied = cohort;
+        if (dateJoined) {
+          const startOfDay = new Date(dateJoined);
+          const endOfDay = new Date(dateJoined);
+          endOfDay.setHours(23, 59, 59, 999);
+          filter.createdAt = { $gte: startOfDay, $lte: endOfDay };
+        }
 
-      if (dateJoined) {
-        // Matches users who joined on that specific date
-        const startOfDay = new Date(dateJoined);
-        const endOfDay = new Date(dateJoined);
-        endOfDay.setHours(23, 59, 59, 999);
+        const users = await User.find(filter).lean();
 
-        filter.createdAt = { $gte: startOfDay, $lte: endOfDay };
+        const male = users.filter(u => u.gender?.toLowerCase() === 'male').length;
+        const female = users.filter(u => u.gender?.toLowerCase() === 'female').length;
+        const total = users.length;
+
+        // Return a simple object; frontend will build chart data from this
+        res.status(200).json({ total, male, female });
+      } catch (err) {
+        console.error('Error fetching gender distribution:', err);
+        res.status(500).json({ message: 'Server error' });
       }
-
-      const users = await User.find(filter);
-
-      // Count genders
-      const male = users.filter(u => u.gender?.toLowerCase() === 'male').length;
-      const female = users.filter(u => u.gender?.toLowerCase() === 'female').length;
-
-      res.status(200).json([
-        { name: "Total", value: users.length },
-        { name: "Male", value: male },
-        { name: "Female", value: female },
-      ]);
-    } catch (err) {
-      console.error("Error fetching gender distribution:", err);
-      res.status(500).json({ message: 'Server error' });
     }
-  });
+  );
 
   router.get('/age-segmentation', authMiddleware2, requireRole([
     'Super Admin',
