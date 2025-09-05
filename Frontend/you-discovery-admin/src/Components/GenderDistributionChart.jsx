@@ -72,26 +72,26 @@ const GenderDistributionChart = ({ loading }) => {
             ) : stats.total > 0 ? (
                 <>
                     <div className="text-center mb-3">
-                        <p className="font-medium">Total Users: {stats.total}</p>
+                        <p className="font-medium">Total Students: {stats.total}</p>
                         <p>
                             Male: {stats.male} | Female: {stats.female}
                         </p>
                     </div>
 
-                    <ResponsiveContainer width="100%" height={250}>
+                    <ResponsiveContainer width="100%" height={300}>
                         <PieChart>
                             <Pie
                                 data={chartData}
                                 dataKey="value"
                                 nameKey="name"
-                                outerRadius={90}
+                                outerRadius={100}
                                 label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                             >
                                 {chartData.map((entry, index) => (
                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                 ))}
                             </Pie>
-                            <Tooltip formatter={(value, name) => [`${value} users`, name]} />
+                            <Tooltip formatter={(value, name) => [`${value} students`, name]} />
                         </PieChart>
                     </ResponsiveContainer>
                 </>

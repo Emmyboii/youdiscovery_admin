@@ -1,30 +1,5 @@
-// components/TopPerformers.jsx
-// import React, { useEffect, useState } from 'react';
 
 const TopPerformers = ({ loading, data }) => {
-    // const [data, setData] = useState({ topByScore: [], topByConsistency: [] });
-    // // const [loading, setLoading] = useState(true);
-
-    // useEffect(() => {
-    //     const fetchTop = async () => {
-    //         setLoading(true)
-    //         try {
-    //             const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/top-performers`, {
-    //                 headers: {
-    //                     Authorization: `Bearer ${localStorage.getItem('adminToken')}`,
-    //                 },
-    //             });
-    //             const result = await res.json();
-    //             setData(result);
-    //         } catch (err) {
-    //             console.error('Error loading top performers:', err);
-    //         } finally {
-    //             // setLoading(false);
-    //         }
-    //     };
-
-    //     fetchTop();
-    // }, []);
 
     return (
         <div className="w-full bg-white">
@@ -33,40 +8,41 @@ const TopPerformers = ({ loading, data }) => {
             {loading ? (
                 <p>Loading leaderboard...</p>
             ) : (
-                <div className="grid md:grid-cols-2 gap-6">
-                    <div>
-                        <h3 className="text-lg font-medium mb-2">Top by Quiz Score</h3>
-                        <ol className="list-decimal list-inside text-sm space-y-1">
-                            {Array.isArray(data?.topByScore) ? (
-                                data.topByScore.map((user, i) => (
-                                    <li key={i}>
-                                        <span className="font-medium">{user.name}</span> ({user.email}) – Avg Score:{' '}
-                                        <strong>{user.avgScore}%</strong>
-                                    </li>
+                <div className="overflow-x-auto">
+                    <table className="min-w-full border border-gray-200 text-sm">
+                        <thead className="bg-gray-100 text-gray-600">
+                            <tr>
+                                <th className="px-4 py-2 text-left">Rank</th>
+                                <th className="px-4 py-2 text-left">You Discoverer</th>
+                                <th className="px-4 py-2">Quiz Avg</th>
+                                <th className="px-4 py-2">Classes Completed</th>
+                                <th className="px-4 py-2">Passed Quizzes</th>
+                                <th className="px-4 py-2">Score</th>
+                                <th className="px-4 py-2">Joined</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {Array.isArray(data?.leaderboard) && data.leaderboard.length > 0 ? (
+                                data.leaderboard.map((user) => (
+                                    <tr key={user.userId} className="border-t">
+                                        <td className="px-4 py-2 font-medium">{user.rank}</td>
+                                        <td className="px-4 py-2">{user.name} <span className="text-xs text-gray-500">({user.email})</span></td>
+                                        <td className="px-4 py-2 text-center">{user.avgScore}%</td>
+                                        <td className="px-4 py-2 text-center">{user.blogsCompleted}</td>
+                                        <td className="px-4 py-2 text-center">{user.passedQuizzes}</td>
+                                        <td className="px-4 py-2 font-bold text-center">{user.score}</td>
+                                        <td className="px-4 py-2 text-sm text-gray-500">{new Date(user.dateJoined).toLocaleDateString()}</td>
+                                    </tr>
                                 ))
                             ) : (
-                                <li>No data available</li>
+                                <tr>
+                                    <td colSpan="7" className="px-4 py-4 text-center text-gray-500">
+                                        No leaderboard data available
+                                    </td>
+                                </tr>
                             )}
-
-                        </ol>
-                    </div>
-
-                    <div>
-                        <h3 className="text-lg font-medium mb-2">Top by Consistency</h3>
-                        <ol className="list-decimal list-inside text-sm space-y-1">
-                            {Array.isArray(data?.topByConsistency) ? (
-                                data.topByConsistency.map((user, i) => (
-                                    <li key={i}>
-                                        <span className="font-medium">{user.name}</span> ({user.email}) – 30-Day Consistency:{' '}
-                                        <strong>{user.consistency}%</strong>
-                                    </li>
-                                ))
-                            ) : (
-                                <li>No data available</li>
-                            )}
-
-                        </ol>
-                    </div>
+                        </tbody>
+                    </table>
                 </div>
             )}
         </div>

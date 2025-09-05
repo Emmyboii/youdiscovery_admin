@@ -566,8 +566,17 @@ const createUserRoutes = async () => {
       const totalCompletions = chapterCompletions.reduce((sum, ch) => sum + ch.completions, 0);
       const avgCompletionRate = (totalChapters ? totalCompletions / totalChapters : 0).toFixed(2);
 
-      // 3. Certificates Issued
-      const certCount = await User.countDocuments({ isCertified: true });
+      // 3. Total certificates earned across all users
+      const result = await User.aggregate([
+        {
+          $group: {
+            _id: null,
+            totalCertificates: { $sum: "$certificatesEarned" }
+          }
+        }
+      ]);
+
+      const certCount = result.length > 0 ? result[0].totalCertificates : 0;
 
       // 4. Most Popular Course (by quiz completions)
       const popularCourse = await Chapter.aggregate([
@@ -685,152 +694,170 @@ const createUserRoutes = async () => {
     }
   });
 
-  router.get('/cohort-insights', authMiddleware2, requireRole([
-    'Super Admin',
-    'CRM/Admin Support',
-    'Academic/Admin Coordinator',
-    'Analytics & Reporting Admin',
-    'Partnerships/Admin for B2B/B2G'
-  ]), async (req, res) => {
-    try {
-      const users = await User.find({ cohortApplied: { $exists: true, $ne: null } });
+  router.get(
+    '/cohort-insights',
+    authMiddleware2,
+    requireRole([
+      'Super Admin',
+      'CRM/Admin Support',
+      'Academic/Admin Coordinator',
+      'Analytics & Reporting Admin',
+      'Partnerships/Admin for B2B/B2G'
+    ]),
+    async (req, res) => {
+      try {
+        const users = await User.find({ cohortApplied: { $exists: true, $ne: null } });
+        const cohorts = [...new Set(users.map(u => u.cohortApplied))];
 
-      const cohorts = [...new Set(users.map(u => u.cohortApplied))];
+        const cohortStats = await Promise.all(
+          cohorts.map(async cohort => {
+            const group = users.filter(u => u.cohortApplied === cohort);
+            const total = group.length;
 
-      const cohortStats = await Promise.all(
-        cohorts.map(async cohort => {
-          const group = users.filter(u => u.cohortApplied === cohort);
-          const total = group.length;
-          const male = group.filter(u => u.gender === 'male').length;
-          const female = group.filter(u => u.gender === 'female').length;
+            const male = group.filter(u => u.gender?.toLowerCase() === 'male').length;
+            const female = group.filter(u => u.gender?.toLowerCase() === 'female').length;
 
-          const ageGroups = {
-            '15–20': 0,
-            '21–25': 0,
-            '26–30': 0,
-            '31–35': 0,
-            '36+': 0
-          };
-
-          for (const u of group) {
-            const age = u.dateOfBirth ? Math.floor((Date.now() - new Date(u.dateOfBirth)) / (365.25 * 24 * 60 * 60 * 1000)) : null;
-            if (!age) continue;
-            if (age <= 20) ageGroups['15–20']++;
-            else if (age <= 25) ageGroups['21–25']++;
-            else if (age <= 30) ageGroups['26–30']++;
-            else if (age <= 35) ageGroups['31–35']++;
-            else ageGroups['36+']++;
-          }
-
-          // Completion stats
-          const blogs = await Blog.find({});
-          const completedUsers = new Set();
-          for (const blog of blogs) {
-            for (const uid of blog.completedBy || []) {
-              const user = group.find(u => u._id.equals(uid));
-              if (user) completedUsers.add(uid.toString());
+            // ---- Age Groups ----
+            const ageGroups = { '15–20': 0, '21–25': 0, '26–30': 0, '31–35': 0, '36+': 0 };
+            for (const u of group) {
+              if (!u.dateOfBirth) continue;
+              const age = Math.floor((Date.now() - new Date(u.dateOfBirth)) / (365.25 * 24 * 60 * 60 * 1000));
+              if (age <= 20) ageGroups['15–20']++;
+              else if (age <= 25) ageGroups['21–25']++;
+              else if (age <= 30) ageGroups['26–30']++;
+              else if (age <= 35) ageGroups['31–35']++;
+              else ageGroups['36+']++;
             }
-          }
 
-          const completions = completedUsers.size;
-          const inactivity = group.filter(u => !u.lastLogin || new Date() - new Date(u.lastLogin) > 30 * 24 * 60 * 60 * 1000).length;
+            // ---- Completions (blogs) ----
+            const blogs = await Blog.find({});
+            const completedUsers = new Set();
+            for (const blog of blogs) {
+              for (const uid of blog.completedBy || []) {
+                if (group.find(u => u._id.equals(uid))) {
+                  completedUsers.add(uid.toString());
+                }
+              }
+            }
+            const completions = completedUsers.size;
 
-          return {
-            cohort,
-            total,
-            male,
-            female,
-            ageGroups,
-            completions,
-            inactive: inactivity,
-            engagementRate: (completions / total * 100).toFixed(1),
-            inactivityRate: (inactivity / total * 100).toFixed(1)
-          };
-        })
-      );
+            // ---- Quiz activity ----
+            const userIds = group.map(u => u._id.toString());
+            const quizAttempts = await QuizAttempt.find({ user: { $in: userIds } });
+            const quizActiveUsers = new Set(quizAttempts.map(q => q.user.toString()));
 
-      // Find highest engagement/dropout cohorts
-      const mostEngaged = [...cohortStats].sort((a, b) => b.engagementRate - a.engagementRate)[0]?.cohort;
-      const mostInactive = [...cohortStats].sort((a, b) => b.inactivityRate - a.inactivityRate)[0]?.cohort;
+            // ---- Inactivity ----
+            const activeUsers = new Set([...completedUsers, ...quizActiveUsers]);
+            const inactivity = userIds.filter(uid => !activeUsers.has(uid)).length;
 
-      res.json({
-        cohorts: cohortStats,
-        mostEngaged,
-        mostInactive
-      });
-    } catch (err) {
-      console.error('Cohort insights error:', err);
-      res.status(500).json({ error: 'Failed to fetch cohort insights' });
+            const engagementRate = total > 0 ? ((completions / total) * 100).toFixed(1) : 0;
+            const inactivityRate = total > 0 ? ((inactivity / total) * 100).toFixed(1) : 0;
+
+            return {
+              cohort,
+              total,
+              male,
+              female,
+              ageGroups,
+              completions,
+              inactive: inactivity,
+              engagementRate: parseFloat(engagementRate),
+              inactivityRate: parseFloat(inactivityRate)
+            };
+          })
+        );
+
+        const mostEngaged = cohortStats.reduce((max, c) => (c.engagementRate > max.engagementRate ? c : max), cohortStats[0]);
+        const mostInactive = cohortStats.reduce((max, c) => (c.inactivityRate > max.inactivityRate ? c : max), cohortStats[0]);
+
+        res.json({
+          cohorts: cohortStats,
+          mostEngaged: mostEngaged?.cohort || null,
+          mostInactive: mostInactive?.cohort || null
+        });
+      } catch (err) {
+        console.error('Cohort insights error:', err);
+        res.status(500).json({ error: 'Failed to fetch cohort insights' });
+      }
     }
-  });
+  );
 
   // routes/topPerformers.js
-  router.get('/top-performers', authMiddleware2, requireRole([
-    'Super Admin',
-    'CRM/Admin Support',
-    'Academic/Admin Coordinator',
-    'Analytics & Reporting Admin',
-    'Partnerships/Admin for B2B/B2G'
-  ]), async (req, res) => {
-    try {
-      // Top 10 by Quiz Score
-      const topByScore = await QuizAttempt.aggregate([
-        {
-          $group: {
-            _id: '$user',
-            avgScore: { $avg: '$score' },
-            attempts: { $sum: 1 }
-          }
-        },
-        {
-          $match: {
-            _id: { $ne: null }, // ensure user field exists
-            avgScore: { $gt: 0 }
-          }
-        },
-        {
-          $sort: { avgScore: -1 }
-        },
-        { $limit: 20 },
-        {
-          $lookup: {
-            from: 'users',
-            localField: '_id',
-            foreignField: '_id',
-            as: 'user'
-          }
-        },
-        { $unwind: '$user' },
-        {
-          $project: {
-            name: { $concat: ['$user.firstName', ' ', '$user.lastName'] },
-            email: '$user.email',
-            avgScore: { $round: ['$avgScore', 1] },
-            cohort: '$user.cohortApplied',
-            consistency: '$user.consistency.last30Days'
-          }
-        }
-      ]);
+  router.get(
+    "/top-performers",
+    authMiddleware2,
+    requireRole([
+      "Super Admin",
+      "CRM/Admin Support",
+      "Academic/Admin Coordinator",
+      "Analytics & Reporting Admin",
+      "Partnerships/Admin for B2B/B2G",
+    ]),
+    async (req, res) => {
+      try {
+        // 1. Fetch all users
+        const users = await User.find({}, { firstName: 1, lastName: 1, email: 1, createdAt: 1 }).lean();
 
-      // Top 10 by Consistency (optional, same as before)
-      const allUsers = await User.find({}).lean();
-      const topByConsistency = allUsers
-        .map(user => ({
-          name: `${user.firstName} ${user.lastName}`,
-          email: user.email,
-          consistency: user.consistency?.last30Days || 0,
-          avgScore: 0,
-          cohort: user.cohortApplied || 'Unassigned'
-        }))
-        .sort((a, b) => b.consistency - a.consistency)
-        .slice(0, 20);
+        // 2. Fetch quiz attempts
+        const quizAttempts = await QuizAttempt.find({}).lean();
 
-      res.json({ topByScore, topByConsistency });
-    } catch (err) {
-      console.error('Top performers error:', err);
-      res.status(500).json({ error: 'Failed to fetch top performers' });
+        // 3. Fetch blogs with completedBy field
+        const blogs = await Blog.find({}, { completedBy: 1 }).lean();
+
+        // Create maps for efficiency
+        const quizMap = {};
+        quizAttempts.forEach((qa) => {
+          const uid = qa.user?.toString();
+          if (!uid) return;
+          if (!quizMap[uid]) quizMap[uid] = [];
+          quizMap[uid].push(qa);
+        });
+
+        const blogMap = {};
+        blogs.forEach((b) => {
+          (b.completedBy || []).forEach((uid) => {
+            uid = uid.toString();
+            if (!blogMap[uid]) blogMap[uid] = 0;
+            blogMap[uid] += 1;
+          });
+        });
+
+        // 4. Build leaderboard data
+        const leaderboard = users.map((u) => {
+          const uid = u._id.toString();
+          const attempts = quizMap[uid] || [];
+          const avgScore =
+            attempts.length > 0 ? attempts.reduce((s, a) => s + (a.score || 0), 0) / attempts.length : 0;
+
+          const passedQuizzes = attempts.filter((a) => a.score >= 50).length; // Pass mark = 50%
+          const blogsCompleted = blogMap[uid] || 0;
+
+          let score = avgScore * 5 + blogsCompleted * 8 + passedQuizzes * 2;
+          if (avgScore >= 85) score += 10; // Bonus
+
+          return {
+            userId: uid,
+            name: `${u.firstName} ${u.lastName}`,
+            email: u.email,
+            avgScore: Math.round(avgScore * 10) / 10,
+            blogsCompleted,
+            passedQuizzes,
+            score: Math.round(score * 10) / 10,
+            dateJoined: u.createdAt,
+          };
+        });
+
+        // 5. Sort and rank
+        const sorted = leaderboard.sort((a, b) => b.score - a.score).slice(0, 20);
+        const ranked = sorted.map((s, i) => ({ rank: i + 1, ...s }));
+
+        res.json({ leaderboard: ranked });
+      } catch (err) {
+        console.error("Leaderboard error:", err);
+        res.status(500).json({ error: "Failed to fetch leaderboard" });
+      }
     }
-  });
+  );
 
   router.get('/drop-off-tracking', authMiddleware2, requireRole([
     'Super Admin',
@@ -856,35 +883,30 @@ const createUserRoutes = async () => {
         return latestBlogDate || user.updatedAt || null;
       };
 
-      const inactive14 = [];
-      const inactive30 = [];
+      let inactive14Count = 0;
+      let inactive30Count = 0;
 
       for (const user of users) {
         const lastActivity = getLastActivity(user);
 
-        if (!lastActivity || lastActivity < oneMonthAgo) {
-          inactive30.push({
-            name: `${user.firstName} ${user.lastName}`,
-            email: user.email,
-            cohort: user.cohortApplied || 'Unassigned',
-            lastActivity,
-            reason: user.inactiveReason || 'No reason provided'
-          });
-        } else if (lastActivity < twoWeeksAgo) {
-          inactive14.push({
-            name: `${user.firstName} ${user.lastName}`,
-            email: user.email,
-            cohort: user.cohortApplied || 'Unassigned',
-            lastActivity,
-            reason: user.inactiveReason || 'No reason provided'
-          });
+        if (!lastActivity) {
+          // never active → count as both
+          inactive14Count++;
+          inactive30Count++;
+          continue;
+        }
+
+        if (lastActivity < twoWeeksAgo) {
+          inactive14Count++;
+        }
+        if (lastActivity < oneMonthAgo) {
+          inactive30Count++;
         }
       }
 
       res.json({
-        inactive14Count: inactive14.length,
-        inactive30Count: inactive30.length,
-        // detailed: [...inactive30, ...inactive14]
+        inactive14Count,
+        inactive30Count
       });
     } catch (err) {
       console.error('Drop-off tracking error:', err);
