@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
     PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
 } from "recharts";
@@ -7,57 +7,52 @@ const COLORS = ["#6366f1", "#f59e0b"]; // Blue & Yellow
 
 const GenderDistributionChart = ({ loading, data }) => {
     const [cohort, setCohort] = useState('');
-    // const [data, setData] = useState([]);
+    const [dateJoined, setDateJoined] = useState('');
 
-    // const fetchGenderData = async () => {
+    useEffect(() => {
+        const fetchData = async () => {
+            const token = localStorage.getItem('adminToken');
+            const params = new URLSearchParams();
+            if (cohort) params.append("cohort", cohort);
+            if (dateJoined) params.append("dateJoined", dateJoined);
 
-    //     const token = localStorage.getItem('adminToken')
-    //     if (!token) {
-    //         console.warn('No token found');
-    //         return;
-    //     }
+            const res = await fetch(
+                `${process.env.REACT_APP_BACKEND_URL}/api/gender-distribution?${params.toString()}`,
+                {
+                    method: "GET",
+                    headers: { Authorization: `Bearer ${token}` },
+                }
+            );
+            const result = await res.json();
+            console.log(result); // 👈 here you’d set state instead of just logging
+        };
 
-    //     setLoading(true);
-    //     try {
-    //         const res = await fetch(
-    //             `${process.env.REACT_APP_BACKEND_URL}/api/gender-distribution?cohort=${cohort}`
-    //             , {
-    //                 method: 'GET',
-    //                 headers: {
-    //                     Authorization: `Bearer ${token}`,
-    //                     Accept: 'application/json',
-    //                     'Content-Type': 'application/json'
-    //                 },
-    //             })
-    //         const result = await res.json();
-
-    //         setData([
-    //             { name: "Male", value: result.male },
-    //             { name: "Female", value: result.female },
-    //         ]);
-    //     } catch (err) {
-    //         console.error("Error fetching gender distribution:", err);
-    //     } finally {
-    //         // setLoading(false);
-    //     }
-    // };
-
-    // useEffect(() => {
-    //     fetchGenderData();
-    // }, [cohort]);
+        fetchData();
+    }, [cohort, dateJoined]);
 
     return (
         <div className="bg-white w-full">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
                 <h2 className="text-xl w-full font-bold text-gray-700">👥 Gender Distribution</h2>
 
-                <input
-                    type="text"
-                    value={cohort}
-                    onChange={(e) => setCohort(e.target.value)}
-                    placeholder="Enter cohort number"
-                    className="border rounded px-3 py-2 text-sm w-[1/3]"
-                />
+                <div className="flex sp:flex-row flex-col gap-3 w-full sm:w-auto">
+                    {/* Cohort filter */}
+                    <input
+                        type="text"
+                        value={cohort}
+                        onChange={(e) => setCohort(e.target.value)}
+                        placeholder="Enter cohort number"
+                        className="border rounded px-3 py-2 text-sm w-[150px]"
+                    />
+
+                    {/* Date joined filter */}
+                    <input
+                        type="date"
+                        value={dateJoined}
+                        onChange={(e) => setDateJoined(e.target.value)}
+                        className="border rounded px-3 py-2 text-sm w-[180px]"
+                    />
+                </div>
             </div>
 
             {loading ? (

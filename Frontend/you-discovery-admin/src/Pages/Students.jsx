@@ -50,23 +50,24 @@ const Students = ({ admins }) => {
 
     const sortStudents = (studentsList) => {
         const sorted = [...studentsList];
+
         switch (sortOption) {
             case "firstName-asc":
                 return sorted.sort((a, b) =>
                     a.firstName?.toLowerCase().localeCompare(b.firstName?.toLowerCase())
                 );
-            case "firstName-desc":
-                return sorted.sort((a, b) =>
-                    b.firstName?.toLowerCase().localeCompare(a.firstName?.toLowerCase())
-                );
+
             case "lastName-asc":
                 return sorted.sort((a, b) =>
                     a.lastName?.toLowerCase().localeCompare(b.lastName?.toLowerCase())
                 );
-            case "lastName-desc":
-                return sorted.sort((a, b) =>
-                    b.lastName?.toLowerCase().localeCompare(a.lastName?.toLowerCase())
-                );
+
+            case "date-asc": // oldest → newest
+                return sorted.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+
+            case "date-desc": // newest → oldest
+                return sorted.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
             default:
                 return studentsList;
         }
@@ -162,9 +163,9 @@ const Students = ({ admins }) => {
                     onChange={(e) => setSortOption(e.target.value)}
                 >
                     <option value="firstName-asc">First Name A–Z</option>
-                    <option value="firstName-desc">First Name Z–A</option>
                     <option value="lastName-asc">Last Name A–Z</option>
-                    <option value="lastName-desc">Last Name Z–A</option>
+                    <option value="date-asc">Date Joined (Oldest → Newest)</option>
+                    <option value="date-desc">Date Joined (Newest → Oldest)</option>
                 </select>
             </div>
 

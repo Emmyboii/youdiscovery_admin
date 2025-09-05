@@ -359,7 +359,7 @@ const UserDetails = () => {
                                             />
                                         ) : (
                                             <p className="text-[14px] md:text-[16px] text-center sh:text-start font-medium text-[#252525]">
-                                                {students.gender ? students.gender : 'Not Provided'}
+                                                {students.gender ? students.gender.charAt(0).toUpperCase() + students.gender.slice(1) : 'Not Provided'}
                                             </p>
                                         )}
                                     </div>

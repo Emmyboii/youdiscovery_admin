@@ -227,13 +227,19 @@ const createUserRoutes = async () => {
     'Partnerships/Admin for B2B/B2G'
   ]), async (req, res) => {
     try {
-      const { cohort } = req.query;
+      const { cohort, dateJoined } = req.query;
 
       const filter = {};
 
-      // If cohort is provided and not empty string, apply it
-      if (cohort && cohort.trim() !== '' && cohort !== 'All') {
-        filter.cohortApplied = cohort.trim();
+      if (cohort) filter.cohortApplied = cohort;
+
+      if (dateJoined) {
+        // Matches users who joined on that specific date
+        const startOfDay = new Date(dateJoined);
+        const endOfDay = new Date(dateJoined);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        filter.createdAt = { $gte: startOfDay, $lte: endOfDay };
       }
 
       const users = await User.find(filter);
@@ -242,11 +248,11 @@ const createUserRoutes = async () => {
       const male = users.filter(u => u.gender?.toLowerCase() === 'male').length;
       const female = users.filter(u => u.gender?.toLowerCase() === 'female').length;
 
-      res.status(200).json({
-        total: users.length,
-        male,
-        female,
-      });
+      res.status(200).json([
+        { name: "Total", value: users.length },
+        { name: "Male", value: male },
+        { name: "Female", value: female },
+      ]);
     } catch (err) {
       console.error("Error fetching gender distribution:", err);
       res.status(500).json({ message: 'Server error' });
@@ -898,8 +904,19 @@ const createUserRoutes = async () => {
     'Partnerships/Admin for B2B/B2G'
   ]), async (req, res) => {
     try {
-      const updated = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
-      res.json(updated);
+      let { gender } = req.body;
+
+      if (gender) {
+        gender = gender.toLowerCase();
+      }
+
+      const updatedStudent = await Student.findByIdAndUpdate(
+        req.params.id,
+        { ...req.body, gender },
+        { new: true }
+      );
+
+      res.json(updatedStudent);
     } catch (err) {
       res.status(500).json({ error: 'Update failed' });
     }

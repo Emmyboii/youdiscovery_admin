@@ -54,7 +54,9 @@ export const sendEmailToMasterAdmin = async (name, email, userId, token) => {
   `;
 
   const html = `
-    <img src="cid:Youdiscovery_Email" alt="YOU Discovery" style="max-width:200px;" />
+    <img src="cid:Youdiscovery_Email" 
+     alt="YOU Discovery" 
+     style="width:100%; max-width:600px; display:block; margin:0 auto;" />
     <h2>New Admin Signup Request</h2>
     <p><strong>Name:</strong> ${name}</p>
     <p><strong>Email:</strong> ${email}</p>
@@ -105,14 +107,16 @@ export const sendApprovalEmail = async (email, name, role) => {
     'Developer/System Admin': 'Handles backend systems, error logs, API integrations, security, and server performance.'
   };
 
+  // pick only the description for the assigned role
+  const roleDescription = descriptions[role] || "Your role details will be provided soon.";
+
   const html = `
-    <img src="cid:Youdiscovery_Email" alt="YOU Discovery" style="max-width:200px;" />
+    <img src="cid:Youdiscovery_Email" 
+     alt="YOU Discovery" 
+     style="width:100%; max-width:600px; display:block; margin:0 auto;" />
     <h2>Congratulations, ${name}!</h2>
     <p>You’ve been approved as <strong>${role}</strong>.</p>
-    <h3>Admin Role Descriptions:</h3>
-    <ul>
-      ${Object.entries(descriptions).map(([r, d]) => `<li><strong>${r}</strong>: ${d}</li>`).join('')}
-    </ul>
+    <p><strong>What this means:</strong> ${roleDescription}</p>
     <p>You can now access your admin dashboard.</p>
   `;
 
@@ -136,7 +140,9 @@ export const sendApprovalEmail = async (email, name, role) => {
 export const sendBirthdayEmail = async (email, firstName) => {
   const html = `
   <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f9f9f9; line-height: 1.6; color: #333;">
-    <img src="cid:Youdiscovery_Email" alt="YOU Discovery" style="max-width:200px;" />
+    <img src="cid:Youdiscovery_Email" 
+     alt="YOU Discovery" 
+     style="width:100%; max-width:600px; display:block; margin:0 auto;" />
     <p>Hi <strong>${firstName}</strong>,</p>
     <p>From all of us at <strong>YOU Discovery</strong>, we’re celebrating <strong>YOU</strong> today! 🥳</p>
     <p>Your journey of growth and reinvention inspires us, and we’re honored to walk alongside <strong>YOU</strong>!</p>
@@ -200,7 +206,9 @@ export const sendAnnouncementToAll = async (users, subject, message, batchSize =
     const tasks = allowedBatch.map(user => {
       const html = `
         <div style="font-family: Arial, sans-serif; padding: 20px;">
-          <img src="cid:Youdiscovery_Email" alt="YOU Discovery" style="max-width:200px;" />
+          <img src="cid:Youdiscovery_Email" 
+     alt="YOU Discovery" 
+     style="width:100%; max-width:600px; display:block; margin:0 auto;" />
           <h2>Hello ${user.firstName},</h2>
           <p style="font-size: 16px; color: #333;">${message}</p>
           <p style="font-size: 14px; color: #777;">Warm regards,</p>

@@ -41,7 +41,7 @@ const Analytics = () => {
                 dropOffRes,
                 classActRes
             ] = await Promise.all([
-                fetch(`${process.env.REACT_APP_BACKEND_URL}/api/gender-distribution?cohort=`, {
+                fetch(`${process.env.REACT_APP_BACKEND_URL}/api/gender-distribution`, {
                     method: 'GET',
                     headers: { Authorization: `Bearer ${token}` }
                 }),
