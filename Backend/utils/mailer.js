@@ -2,6 +2,7 @@
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 dotenv.config();
+import path from "path";
 
 import AnnouncementLog from '../models/AnnouncementLog.js';
 
@@ -79,7 +80,7 @@ export const sendEmailToMasterAdmin = async (name, email, userId, token) => {
     attachments: [
       {
         filename: 'Youdiscovery_Email.jpg',
-        path: '../assets/Youdiscovery_Email.jpg',
+        path: path.resolve(__dirname, "../assets/Youdiscovery_Email.jpg"),
         cid: 'Youdiscovery_Email'
       }
     ]
@@ -119,7 +120,7 @@ export const sendApprovalEmail = async (email, name, role) => {
     attachments: [
       {
         filename: 'Youdiscovery_Email.jpg',
-        path: '../assets/Youdiscovery_Email.jpg',
+        path: path.resolve(__dirname, "../assets/Youdiscovery_Email.jpg"),
         cid: 'Youdiscovery_Email'
       }
     ]
@@ -170,7 +171,7 @@ export const sendBirthdayEmail = async (email, firstName) => {
     attachments: [
       {
         filename: 'Youdiscovery_Email.jpg',
-        path: '../assets/Youdiscovery_Email.jpg',
+        path: path.resolve(__dirname, "../assets/Youdiscovery_Email.jpg"),
         cid: 'Youdiscovery_Email'
       }
     ]
@@ -211,7 +212,7 @@ export const sendAnnouncementToAll = async (users, subject, message, batchSize =
         attachments: [
           {
             filename: 'Youdiscovery_Email.jpg',
-            path: '../assets/Youdiscovery_Email.jpg',
+            path: path.resolve(__dirname, "../assets/Youdiscovery_Email.jpg"),
             cid: 'Youdiscovery_Email'
           }
         ]
