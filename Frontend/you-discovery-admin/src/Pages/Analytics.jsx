@@ -142,7 +142,7 @@ const Analytics = () => {
                 <CohortInsights data={allData.cohort} loading={loading} setLoading={setLoading} />
             </div>
 
-            <div className='border-[1.5px] border-[#25252533] sd:rounded-[20px] rounded-xl flex flex-col gap-[26px] sd:py-[30px] p-[20px] xl:px-[50px]'>
+            <div className='border-[1.5px] border-[#25252533] sd:rounded-[20px] rounded-xl flex flex-col gap-[26px] sd:py-[30px] p-[15px] xl:px-[30px]'>
                 <TopPerformers data={allData.topPerformers} loading={loading} setLoading={setLoading} />
             </div>
 
