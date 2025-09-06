@@ -569,7 +569,15 @@ const createUserRoutes = async () => {
         {
           $group: {
             _id: null,
-            totalCertificates: { $sum: "$certificatesEarned" }
+            totalCertificates: {
+              $sum: {
+                $cond: [
+                  { $ifNull: ["$certificatesEarned", false] },
+                  { $toInt: "$certificatesEarned" },
+                  0
+                ]
+              }
+            }
           }
         }
       ]);
@@ -702,7 +710,7 @@ const createUserRoutes = async () => {
     ]),
     async (req, res) => {
       try {
-        const users = await User.find({ cohortApplied: { $exists: true, $ne: null } });
+        const users = await User.find({ cohortApplied: { $exists: true, $ne: null } }).lean();
         const cohorts = [...new Set(users.map(u => u.cohortApplied))];
 
         const cohortStats = await Promise.all(
@@ -727,30 +735,28 @@ const createUserRoutes = async () => {
               else ageGroups['36+']++;
             }
 
-            // ---- Blog completions ----
-            const blogs = await Blog.find({});
-            const completedUsers = new Set();
+            // ---- Blog completions (classes) ----
             let completions = 0;
+            const completedUsers = new Set();
 
-            for (const blog of blogs) {
-              for (const uid of blog.completedBy || []) {
-                if (group.find(u => u._id.equals(uid))) {
-                  completedUsers.add(uid.toString());
-                  completions++; // count total completions, not just unique users
-                }
+            for (const u of group) {
+              const completed = u.completedBlogs?.length || 0;
+              completions += completed; // total completed classes across cohort
+              if (completed > 0) {
+                completedUsers.add(u._id.toString());
               }
             }
 
             // ---- Quiz activity ----
             const userIds = group.map(u => u._id.toString());
-            const quizAttempts = await QuizAttempt.find({ user: { $in: userIds } });
+            const quizAttempts = await QuizAttempt.find({ user: { $in: userIds } }).lean();
             const quizActiveUsers = new Set(quizAttempts.map(q => q.user.toString()));
 
-            // ---- Engagement (blog OR quiz) ----
+            // ---- Engagement (class OR quiz) ----
             const engagedUsers = new Set([...completedUsers, ...quizActiveUsers]);
             const engagedCount = engagedUsers.size;
 
-            // ---- Inactivity (no blogs, no quiz) ----
+            // ---- Inactivity ----
             const inactive = total - engagedCount;
 
             const engagementRate = total > 0 ? ((engagedCount / total) * 100).toFixed(1) : 0;
@@ -762,8 +768,8 @@ const createUserRoutes = async () => {
               male,
               female,
               ageGroups,
-              completions, // total blogs completed across all users in the cohort
-              engaged: engagedCount,
+              completions,   // ✅ total blogs completed across cohort
+              engaged: engagedCount, // ✅ users who took at least 1 blog or quiz
               inactive,
               engagementRate: parseFloat(engagementRate),
               inactivityRate: parseFloat(inactivityRate)
@@ -837,6 +843,8 @@ const createUserRoutes = async () => {
 
           let score = avgScore * 5 + blogsCompleted * 8 + passedQuizzes * 2;
           if (avgScore >= 85) score += 10; // Bonus
+
+          score = Math.round(score);
 
           return {
             userId: uid,

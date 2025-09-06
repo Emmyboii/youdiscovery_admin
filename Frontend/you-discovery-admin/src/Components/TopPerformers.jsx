@@ -31,7 +31,11 @@ const TopPerformers = ({ loading, data }) => {
                                         <td className="px-4 py-2 text-center">{user.blogsCompleted}</td>
                                         <td className="px-4 py-2 text-center">{user.passedQuizzes}</td>
                                         <td className="px-4 py-2 font-bold text-center">{user.score}</td>
-                                        <td className="px-4 py-2 text-sm text-gray-500">{new Date(user.dateJoined).toLocaleDateString()}</td>
+                                        <td className="px-4 py-2 text-sm text-gray-500">{new Date(user.dateJoined).toLocaleDateString("en-US", {
+                                            day: '2-digit',
+                                            month: 'short',
+                                            year: 'numeric'
+                                        })}</td>
                                     </tr>
                                 ))
                             ) : (
