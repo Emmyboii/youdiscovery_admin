@@ -523,9 +523,7 @@ const createUserRoutes = async () => {
       // 2. Average Completion Rate per Chapter (based on completedAt in QuizAttempt)
       const chapterCompletions = await QuizAttempt.aggregate([
         {
-          $match: {
-            completedAt: { $exists: true }
-          }
+          $match: { completedAt: { $exists: true } }
         },
         {
           $lookup: {
@@ -566,7 +564,7 @@ const createUserRoutes = async () => {
       const totalCompletions = chapterCompletions.reduce((sum, ch) => sum + ch.completions, 0);
       const avgCompletionRate = (totalChapters ? totalCompletions / totalChapters : 0).toFixed(2);
 
-      // 3. Total certificates earned across all users
+      // 3. Total certificates issued (sum of all certificatesEarned)
       const result = await User.aggregate([
         {
           $group: {
@@ -575,7 +573,6 @@ const createUserRoutes = async () => {
           }
         }
       ]);
-
       const certCount = result.length > 0 ? result[0].totalCertificates : 0;
 
       // 4. Most Popular Course (by quiz completions)
@@ -649,9 +646,7 @@ const createUserRoutes = async () => {
       // 6. Most Completed Quiz
       const topQuiz = await QuizAttempt.aggregate([
         {
-          $match: {
-            completedAt: { $exists: true }
-          }
+          $match: { completedAt: { $exists: true } }
         },
         {
           $group: {
@@ -679,6 +674,7 @@ const createUserRoutes = async () => {
       ]);
       const mostCompletedQuiz = topQuiz[0]?.title || 'N/A';
 
+      // Final Response
       res.json({
         averageQuizScore,
         avgCompletionRate,
@@ -721,7 +717,9 @@ const createUserRoutes = async () => {
             const ageGroups = { '15–20': 0, '21–25': 0, '26–30': 0, '31–35': 0, '36+': 0 };
             for (const u of group) {
               if (!u.dateOfBirth) continue;
-              const age = Math.floor((Date.now() - new Date(u.dateOfBirth)) / (365.25 * 24 * 60 * 60 * 1000));
+              const age = Math.floor(
+                (Date.now() - new Date(u.dateOfBirth)) / (365.25 * 24 * 60 * 60 * 1000)
+              );
               if (age <= 20) ageGroups['15–20']++;
               else if (age <= 25) ageGroups['21–25']++;
               else if (age <= 30) ageGroups['26–30']++;
@@ -729,29 +727,34 @@ const createUserRoutes = async () => {
               else ageGroups['36+']++;
             }
 
-            // ---- Completions (blogs) ----
+            // ---- Blog completions ----
             const blogs = await Blog.find({});
             const completedUsers = new Set();
+            let completions = 0;
+
             for (const blog of blogs) {
               for (const uid of blog.completedBy || []) {
                 if (group.find(u => u._id.equals(uid))) {
                   completedUsers.add(uid.toString());
+                  completions++; // count total completions, not just unique users
                 }
               }
             }
-            const completions = completedUsers.size;
 
             // ---- Quiz activity ----
             const userIds = group.map(u => u._id.toString());
             const quizAttempts = await QuizAttempt.find({ user: { $in: userIds } });
             const quizActiveUsers = new Set(quizAttempts.map(q => q.user.toString()));
 
-            // ---- Inactivity ----
-            const activeUsers = new Set([...completedUsers, ...quizActiveUsers]);
-            const inactivity = userIds.filter(uid => !activeUsers.has(uid)).length;
+            // ---- Engagement (blog OR quiz) ----
+            const engagedUsers = new Set([...completedUsers, ...quizActiveUsers]);
+            const engagedCount = engagedUsers.size;
 
-            const engagementRate = total > 0 ? ((completions / total) * 100).toFixed(1) : 0;
-            const inactivityRate = total > 0 ? ((inactivity / total) * 100).toFixed(1) : 0;
+            // ---- Inactivity (no blogs, no quiz) ----
+            const inactive = total - engagedCount;
+
+            const engagementRate = total > 0 ? ((engagedCount / total) * 100).toFixed(1) : 0;
+            const inactivityRate = total > 0 ? ((inactive / total) * 100).toFixed(1) : 0;
 
             return {
               cohort,
@@ -759,16 +762,23 @@ const createUserRoutes = async () => {
               male,
               female,
               ageGroups,
-              completions,
-              inactive: inactivity,
+              completions, // total blogs completed across all users in the cohort
+              engaged: engagedCount,
+              inactive,
               engagementRate: parseFloat(engagementRate),
               inactivityRate: parseFloat(inactivityRate)
             };
           })
         );
 
-        const mostEngaged = cohortStats.reduce((max, c) => (c.engagementRate > max.engagementRate ? c : max), cohortStats[0]);
-        const mostInactive = cohortStats.reduce((max, c) => (c.inactivityRate > max.inactivityRate ? c : max), cohortStats[0]);
+        const mostEngaged = cohortStats.reduce(
+          (max, c) => (c.engagementRate > max.engagementRate ? c : max),
+          cohortStats[0]
+        );
+        const mostInactive = cohortStats.reduce(
+          (max, c) => (c.inactivityRate > max.inactivityRate ? c : max),
+          cohortStats[0]
+        );
 
         res.json({
           cohorts: cohortStats,
@@ -795,16 +805,16 @@ const createUserRoutes = async () => {
     ]),
     async (req, res) => {
       try {
-        // 1. Fetch all users
-        const users = await User.find({}, { firstName: 1, lastName: 1, email: 1, createdAt: 1 }).lean();
+        // 1. Fetch all users with completedBlogs
+        const users = await User.find(
+          {},
+          { firstName: 1, lastName: 1, email: 1, createdAt: 1, completedBlogs: 1 }
+        ).lean();
 
         // 2. Fetch quiz attempts
         const quizAttempts = await QuizAttempt.find({}).lean();
 
-        // 3. Fetch blogs with completedBy field
-        const blogs = await Blog.find({}, { completedBy: 1 }).lean();
-
-        // Create maps for efficiency
+        // Create quiz map for efficiency
         const quizMap = {};
         quizAttempts.forEach((qa) => {
           const uid = qa.user?.toString();
@@ -813,24 +823,17 @@ const createUserRoutes = async () => {
           quizMap[uid].push(qa);
         });
 
-        const blogMap = {};
-        blogs.forEach((b) => {
-          (b.completedBy || []).forEach((uid) => {
-            uid = uid.toString();
-            if (!blogMap[uid]) blogMap[uid] = 0;
-            blogMap[uid] += 1;
-          });
-        });
-
-        // 4. Build leaderboard data
+        // 3. Build leaderboard data
         const leaderboard = users.map((u) => {
           const uid = u._id.toString();
           const attempts = quizMap[uid] || [];
           const avgScore =
-            attempts.length > 0 ? attempts.reduce((s, a) => s + (a.score || 0), 0) / attempts.length : 0;
+            attempts.length > 0
+              ? attempts.reduce((s, a) => s + (a.score || 0), 0) / attempts.length
+              : 0;
 
           const passedQuizzes = attempts.filter((a) => a.score >= 50).length; // Pass mark = 50%
-          const blogsCompleted = blogMap[uid] || 0;
+          const blogsCompleted = u.completedBlogs?.length || 0; // ✅ use user's completedBlogs
 
           let score = avgScore * 5 + blogsCompleted * 8 + passedQuizzes * 2;
           if (avgScore >= 85) score += 10; // Bonus
@@ -842,12 +845,12 @@ const createUserRoutes = async () => {
             avgScore: Math.round(avgScore * 10) / 10,
             blogsCompleted,
             passedQuizzes,
-            score: Math.round(score * 10) / 10,
+            score,
             dateJoined: u.createdAt,
           };
         });
 
-        // 5. Sort and rank
+        // 4. Sort and rank
         const sorted = leaderboard.sort((a, b) => b.score - a.score).slice(0, 20);
         const ranked = sorted.map((s, i) => ({ rank: i + 1, ...s }));
 
@@ -883,37 +886,43 @@ const createUserRoutes = async () => {
         return latestBlogDate || user.updatedAt || null;
       };
 
-      let inactive14Count = 0;
-      let inactive30Count = 0;
+      const inactive14 = []; // 14–30 days
+      const inactive30 = []; // 30+ days
 
       for (const user of users) {
         const lastActivity = getLastActivity(user);
 
-        if (!lastActivity) {
-          // never active → count as both
-          inactive14Count++;
-          inactive30Count++;
-          continue;
-        }
-
-        if (lastActivity < twoWeeksAgo) {
-          inactive14Count++;
-        }
-        if (lastActivity < oneMonthAgo) {
-          inactive30Count++;
+        if (!lastActivity || lastActivity < oneMonthAgo) {
+          // 30+ days
+          inactive30.push({
+            name: `${user.firstName} ${user.lastName}`,
+            email: user.email,
+            cohort: user.cohortApplied || 'Unassigned',
+            lastActivity,
+            reason: user.inactiveReason || 'No reason provided'
+          });
+        } else if (lastActivity < twoWeeksAgo) {
+          // strictly between 14 and 30 days
+          inactive14.push({
+            name: `${user.firstName} ${user.lastName}`,
+            email: user.email,
+            cohort: user.cohortApplied || 'Unassigned',
+            lastActivity,
+            reason: user.inactiveReason || 'No reason provided'
+          });
         }
       }
 
       res.json({
-        inactive14Count,
-        inactive30Count
+        inactive14Count: inactive14.length,
+        inactive30Count: inactive30.length,
+        // detailed: [...inactive30, ...inactive14]
       });
     } catch (err) {
       console.error('Drop-off tracking error:', err);
       res.status(500).json({ error: 'Failed to fetch drop-off data' });
     }
   });
-
 
   // 🟡 Admins only: Update user in both DBs
   router.put('/users/:id', authMiddleware2, requireRole([
